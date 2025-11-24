@@ -6,32 +6,17 @@
 <title>Dark MP3 Player — Siva Manihandan</title>
 <meta name="description" content="Dark local MP3 player — artist Siva Manihandan">
 <style>
-  /* Modern dark UI, compact and professional */
   :root{
-    --bg-0:#041018;
-    --bg-1:#071019;
-    --panel:#0f1519;
-    --muted:#98a4ad;
-    --accent:#1db954;
-    --glass: rgba(255,255,255,0.03);
-    --card: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    --text:#e8f0f4;
-    --radius:14px;
-    --shadow: 0 8px 30px rgba(2,6,10,0.6);
-    --gap:18px;
+    --bg-0:#041018; --bg-1:#071019; --panel:#0f1519; --muted:#98a4ad; --accent:#1db954;
+    --glass: rgba(255,255,255,0.03); --card: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    --text:#e8f0f4; --radius:14px; --shadow: 0 8px 30px rgba(2,6,10,0.6); --gap:18px;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg-0),var(--bg-1));color:var(--text);-webkit-font-smoothing:antialiased}
   .app{display:grid;grid-template-columns:320px 1fr;gap:var(--gap);height:100vh;padding:24px}
-  .card{
-    background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;
-    border:1px solid rgba(255,255,255,0.02);
-  }
-  .cover{
-    border-radius:12px;overflow:hidden;height:320px;background:linear-gradient(180deg,#0b0f12,#071018);display:flex;align-items:center;justify-content:center;
-    transition:transform .28s cubic-bezier(.2,.9,.3,1);
-  }
+  .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;border:1px solid rgba(255,255,255,0.02)}
+  .cover{border-radius:12px;overflow:hidden;height:320px;background:linear-gradient(180deg,#0b0f12,#071018);display:flex;align-items:center;justify-content:center;transition:transform .28s cubic-bezier(.2,.9,.3,1)}
   .cover img{width:100%;height:100%;object-fit:cover;display:block}
   .meta{margin-top:14px}
   .title{font-weight:700;font-size:18px;letter-spacing:0.2px}
@@ -71,7 +56,6 @@
     .card{order:2}
     .panel{order:1}
   }
-  /* small helper */
   .muted-small{font-size:12px;color:var(--muted)}
 </style>
 </head>
@@ -99,7 +83,6 @@
       </div>
 
       <div class="settings">
-        <div class="chip">Volume <input id="vol" type="range" min="0" max="1" step="0.01" value="0.9" style="margin-left:8px;vertical-align:middle"></div>
         <div class="chip"><label style="cursor:pointer"><input id="shuffle" type="checkbox" style="margin-right:8px">Shuffle</label></div>
         <div class="chip"><label style="cursor:pointer"><input id="repeat" type="checkbox" style="margin-right:8px">Repeat</label></div>
         <div style="flex:1"></div>
@@ -116,7 +99,7 @@
       </div>
 
       <div class="playlist" id="playlist" role="list"></div>
-      <div class="muted-small" style="margin-top:8px">Tip: Drag & drop audio files or click the import button. For server-hosted files provide <code>list.json</code> or a directory listing.</div>
+      <div class="muted-small" style="margin-top:8px">Tip: For GitHub Pages hosting put a <code>list.json</code> (array of filenames) next to this index.html.</div>
     </div>
   </div>
 
@@ -136,12 +119,6 @@
   <audio id="player" preload="metadata"></audio>
 
 <script>
-/* Improved player:
-   - Durations collected for both local blobs and server URLs (via an offscreen Audio element).
-   - Robust auto-detect: list.json first, then directory listing parse.
-   - Keeps UI minimal & professional.
-*/
-
 const DEFAULT_ARTIST = 'Siva Manihandan';
 const AUDIO_RE = /\.(mp3|m4a|wav|ogg|flac)(\?.*)?$/i;
 
@@ -154,7 +131,6 @@ const seek = document.getElementById('seek');
 const curTime = document.getElementById('curTime');
 const durTime = document.getElementById('durTime');
 const countEl = document.getElementById('count');
-const vol = document.getElementById('vol');
 const shuffleEl = document.getElementById('shuffle');
 const repeatEl = document.getElementById('repeat');
 const autoplayChip = document.getElementById('autoplayChip');
@@ -175,10 +151,8 @@ let isShuffle = false;
 let isRepeat = false;
 let autoplay = true;
 
-vol.addEventListener('input', ()=> { player.volume = vol.value; });
-player.volume = vol.value;
-shuffleEl.addEventListener('change', ()=> { isShuffle = shuffleEl.checked; });
-repeatEl.addEventListener('change', ()=> { isRepeat = repeatEl.checked; });
+// remove volume control entirely — set default volume to 1 (full)
+player.volume = 1;
 
 // time formatting (digit-by-digit safe)
 function fmtTime(s){
@@ -201,19 +175,11 @@ function pickColors(seed){
   const c = ((h >> 16) & 0xFFFFFF).toString(16).padStart(6,'0');
   return ['#'+a,'#'+b,'#'+c];
 }
-
-// generate SVG thumbnail data URL using gradients and initials
 function makeThumb(title){
   const colors = pickColors(title);
   const initials = title.split(/[\s\-_]+/).map(t=>t[0]||'').slice(0,2).join('').toUpperCase() || 'S';
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512'>
-    <defs>
-      <linearGradient id='g' x1='0' x2='1' y1='0' y2='1'>
-        <stop offset='0' stop-color='${colors[0]}'/>
-        <stop offset='0.6' stop-color='${colors[1]}'/>
-        <stop offset='1' stop-color='${colors[2]}'/>
-      </linearGradient>
-    </defs>
+    <defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'><stop offset='0' stop-color='${colors[0]}'/><stop offset='0.6' stop-color='${colors[1]}'/><stop offset='1' stop-color='${colors[2]}'/></linearGradient></defs>
     <rect width='100%' height='100%' fill='url(#g)'/>
     <g fill='rgba(255,255,255,0.12)'><circle cx='420' cy='100' r='60'/><circle cx='80' cy='420' r='50'/></g>
     <text x='50%' y='54%' font-size='140' text-anchor='middle' fill='rgba(255,255,255,0.92)' font-family='Inter,Arial,Helvetica' font-weight='700'>${escapeHtml(initials)}</text>
@@ -222,7 +188,6 @@ function makeThumb(title){
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"'`]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c])); }
 
-// Render playlist (filter applied)
 function render(filter=''){
   playlistEl.innerHTML = '';
   const filtered = tracks.filter(t => (t.name + ' ' + (t.artist||'')).toLowerCase().includes(filter.toLowerCase()));
@@ -246,7 +211,6 @@ function render(filter=''){
   updateMini();
 }
 
-// update mini player
 function updateMini(){
   const t = tracks[current];
   miniTitle.textContent = t ? t.name : 'No track';
@@ -257,7 +221,6 @@ function updateMini(){
   playBtn.textContent = paused ? '▶' : '⏸';
 }
 
-// set page metadata & media notification
 function setMeta(t){
   document.getElementById('trackTitle').textContent = t ? t.name : 'No track';
   document.getElementById('artistLabel').textContent = t ? (t.artist || DEFAULT_ARTIST) : DEFAULT_ARTIST;
@@ -274,7 +237,6 @@ function setMeta(t){
   }
 }
 
-// ensure a track index exists
 function playIndex(i){
   if(tracks.length === 0) return;
   if(i<0) i = 0;
@@ -282,37 +244,23 @@ function playIndex(i){
   current = i;
   const t = tracks[current];
   if(!t) return;
-  // set src and try play
   player.src = t.url;
   setMeta(t);
-  player.play().then(()=> {
-    // playing
-  }).catch(()=> {
-    // may require user gesture — UI stays consistent
-  });
+  player.play().catch(()=>{});
   updateMini();
   render(filterInput.value);
 }
 
-// next / prev logic
 function playNext(){
-  if(isRepeat){
-    player.currentTime = 0; player.play(); return;
-  }
-  if(isShuffle){
-    if(tracks.length===0) return;
-    const n = Math.floor(Math.random()*tracks.length);
-    playIndex(n); return;
-  }
-  if(current < tracks.length - 1) playIndex(current+1);
-  else playIndex(0);
+  if(isRepeat){ player.currentTime = 0; player.play(); return; }
+  if(isShuffle){ if(tracks.length===0) return; const n = Math.floor(Math.random()*tracks.length); playIndex(n); return; }
+  if(current < tracks.length - 1) playIndex(current+1); else playIndex(0);
 }
 function playPrev(){
   if(player.currentTime > 3){ player.currentTime = 0; player.play(); return; }
   if(current > 0) playIndex(current-1); else playIndex(0);
 }
 
-// update seek during playback
 player.addEventListener('timeupdate', ()=> {
   if(player.duration){
     seek.value = (player.currentTime / player.duration) * 100;
@@ -321,8 +269,6 @@ player.addEventListener('timeupdate', ()=> {
   }
 });
 player.addEventListener('ended', ()=> { if(autoplay) playNext(); else { playBtn.textContent = '▶'; miniPlay.textContent = '▶'; } });
-
-// update duration when metadata available (for server urls)
 player.addEventListener('loadedmetadata', ()=> {
   if(player.duration && tracks[current]) {
     tracks[current].duration = player.duration;
@@ -331,11 +277,8 @@ player.addEventListener('loadedmetadata', ()=> {
   }
 });
 
-seek.addEventListener('input', ()=> {
-  if(player.duration) player.currentTime = (seek.value / 100) * player.duration;
-});
+seek.addEventListener('input', ()=> { if(player.duration) player.currentTime = (seek.value / 100) * player.duration; });
 
-// play/pause handlers
 playBtn.addEventListener('click', ()=>{
   if(!player.src && tracks.length) { playIndex(0); return; }
   if(player.paused){ player.play(); playBtn.textContent='⏸'; miniPlay.textContent='⏸'; }
@@ -348,7 +291,6 @@ miniPrev.addEventListener('click', e=>{ e.stopPropagation(); playPrev(); });
 miniNext.addEventListener('click', e=>{ e.stopPropagation(); playNext(); });
 miniPlay.addEventListener('click', e=>{ e.stopPropagation(); playBtn.click(); });
 
-// keyboard shortcuts (prevent when typing)
 window.addEventListener('keydown', e=> {
   const tag = document.activeElement && document.activeElement.tagName.toLowerCase();
   if(tag === 'input' || tag === 'textarea') return;
@@ -357,7 +299,6 @@ window.addEventListener('keydown', e=> {
   if(e.code==='ArrowLeft') prevBtn.click();
 });
 
-// media session controls
 if('mediaSession' in navigator){
   try{
     navigator.mediaSession.setActionHandler('play', ()=>{ player.play(); playBtn.textContent='⏸'; miniPlay.textContent='⏸'; });
@@ -367,27 +308,21 @@ if('mediaSession' in navigator){
   }catch(e){}
 }
 
-// drag & drop / file import
+// drag & drop / import
 function handleFiles(list){
   const files = Array.from(list).filter(f => AUDIO_RE.test(f.name));
   if(files.length === 0) return;
   files.sort((a,b)=> a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
-  // revoke old blob urls
   tracks.forEach(t=> { if(t._blob) URL.revokeObjectURL(t.url); });
   tracks = files.map(f => {
     const name = f.name.replace(/\.[^/.]+$/,'');
     return { name, url: URL.createObjectURL(f), artist: DEFAULT_ARTIST, source:'local', _blob:true, thumb: makeThumb(name) };
   });
-  // fetch durations for blobs by loading metadata on temp audio elements
-  populateDurationsForAll(tracks).then(()=> {
-    render('');
-    if(tracks.length) playIndex(0);
-  });
+  populateDurationsForAll(tracks).then(()=> { render(''); if(tracks.length) playIndex(0); });
 }
 document.body.addEventListener('dragover', e=> { e.preventDefault(); });
 document.body.addEventListener('drop', e=> { e.preventDefault(); if(e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files); });
 
-// import button create file input
 document.getElementById('import').addEventListener('click', ()=> {
   const inp = document.createElement('input');
   inp.type = 'file';
@@ -397,7 +332,6 @@ document.getElementById('import').addEventListener('click', ()=> {
   inp.click();
 });
 
-// helper: load duration for a single track (works for blobs and remote URLs)
 function loadDurationForTrack(track){
   return new Promise((resolve)=> {
     if(track.duration && !isNaN(track.duration)) return resolve(track);
@@ -405,17 +339,11 @@ function loadDurationForTrack(track){
     a.preload = 'metadata';
     a.src = track.url;
     const tidy = ()=> { try{ a.remove(); }catch(e){} };
-    const onloaded = ()=> {
-      if(!isNaN(a.duration) && isFinite(a.duration)) track.duration = a.duration;
-      tidy();
-      resolve(track);
-    };
+    const onloaded = ()=> { if(!isNaN(a.duration) && isFinite(a.duration)) track.duration = a.duration; tidy(); resolve(track); };
     const onerror = ()=> { tidy(); resolve(track); };
     a.addEventListener('loadedmetadata', onloaded, {once:true});
     a.addEventListener('error', onerror, {once:true});
-    // start load
     a.load();
-    // safety: timeout after 6s
     setTimeout(()=> { resolve(track); try{ a.remove(); }catch(e){} }, 6000);
   });
 }
@@ -424,9 +352,8 @@ async function populateDurationsForAll(list){
   await Promise.all(promises);
 }
 
-// server autodetect (tries list.json then directory listing)
+// server autodetect (list.json first, then directory parsing)
 async function tryAutoLoad(){
-  // try list.json first
   try {
     const r = await fetch('./list.json', {cache:'no-store'});
     if(r.ok){
@@ -442,10 +369,40 @@ async function tryAutoLoad(){
         return;
       }
     }
-  }catch(e){ /* ignore network errors */ }
-
-  // try fetch directory root and parse anchor tags (works on some static servers)
+  }catch(e){}
   try {
     const r = await fetch('./', {cache:'no-store'});
     if(r.ok){
-      const text = await r
+      const text = await r.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'text/html');
+      const anchors = Array.from(doc.getElementsByTagName('a'));
+      const files = anchors.map(a => a.getAttribute('href') || '').filter(h => AUDIO_RE.test(h));
+      if(files.length){
+        const uniq = Array.from(new Set(files)).sort();
+        const list = uniq.map(n => {
+          const name = decodeURIComponent(n.split('/').pop()).replace(/\.[^/.]+$/,'');
+          return { name, url: n, artist: DEFAULT_ARTIST, source:'server', thumb: makeThumb(name) };
+        });
+        tracks = list;
+        await populateDurationsForAll(tracks);
+        render(''); if(tracks.length) playIndex(0);
+        return;
+      }
+    }
+  }catch(e){}
+}
+
+filterInput.addEventListener('input', ()=> render(filterInput.value));
+autoplayChip.addEventListener('click', ()=> { autoplay = !autoplay; autoplayChip.textContent = 'Autoplay: ' + (autoplay ? 'On' : 'Off'); autoplayChip.style.opacity = autoplay ? '1' : '0.7'; });
+
+mini.addEventListener('click', ()=> { window.scrollTo({ top: 0, behavior: 'smooth' }); playBtn.focus(); });
+
+window.addEventListener('beforeunload', ()=> { tracks.forEach(t=> { if(t._blob) URL.revokeObjectURL(t.url); }); });
+
+window.addEventListener('load', async ()=> { if(location.protocol !== 'file:') await tryAutoLoad(); autoplay = true; autoplayChip.textContent = 'Autoplay: On'; updateMini(); });
+
+document.addEventListener('dragstart', e=> e.preventDefault());
+</script>
+</body>
+</html>
