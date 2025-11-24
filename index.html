@@ -3,65 +3,49 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Dark MP3 Player — Letter Cover (No Drag & Drop)</title>
-<meta name="description" content="Dark MP3 player — cover uses song starting letter, no drag & drop">
+<title>Dark MP3 Player — Robust Auto-load</title>
+<meta name="description" content="Robust auto-load all .mp3 in same folder (GitHub Pages friendly)">
 <style>
 :root{
-  --bg-0:#031018;
-  --bg-1:#071019;
-  --panel:#0c1316;
-  --muted:#98a4ad;
-  --accent:#1db954;
-  --text:#e8f0f4;
+  --bg-0:#031018; --bg-1:#071019; --muted:#98a4ad; --accent:#1db954; --text:#e8f0f4;
   --card:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  --radius:14px;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --radius:12px; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg-0),var(--bg-1));color:var(--text);-webkit-font-smoothing:antialiased}
 .app{display:grid;grid-template-columns:380px 1fr;gap:18px;height:100vh;padding:20px}
 .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:0 10px 40px rgba(2,6,10,0.6);display:flex;flex-direction:column}
-.cover{border-radius:12px;overflow:hidden;height:340px;background:linear-gradient(180deg,#061017,#071018);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 -30px 80px rgba(0,0,0,0.4)}
+.cover{border-radius:12px;overflow:hidden;height:320px;background:linear-gradient(180deg,#061017,#071018);display:flex;align-items:center;justify-content:center}
 .cover img{width:100%;height:100%;object-fit:cover;display:block}
-.meta{margin-top:14px}
-.title{font-weight:700;font-size:18px;letter-spacing:0.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{margin-top:12px}
+.title{font-weight:700;font-size:18px}
 .artist{color:var(--muted);font-size:13px;margin-top:6px}
-.controls{display:flex;align-items:center;gap:12px;margin-top:14px}
+.controls{display:flex;align-items:center;gap:12px;margin-top:12px}
 .btn{background:transparent;border:none;padding:10px;border-radius:10px;color:var(--text);cursor:pointer;backdrop-filter:blur(4px);font-size:18px}
-.btn:hover{background:rgba(255,255,255,0.02)}
-.play{width:64px;height:64px;border-radius:12px;background:linear-gradient(180deg,var(--accent),#16a84a);color:#01120a;font-weight:800;font-size:20px;display:inline-flex;align-items:center;justify-content:center;border:none;cursor:pointer;box-shadow:0 8px 30px rgba(29,185,84,0.14)}
-.seek-wrap{margin-top:14px}
+.play{width:64px;height:64px;border-radius:12px;background:linear-gradient(180deg,var(--accent),#16a84a);color:#01120a;font-weight:800;font-size:20px;border:none;cursor:pointer;box-shadow:0 8px 30px rgba(29,185,84,0.14)}
+.seek-wrap{margin-top:12px}
 input[type=range]{width:100%;-webkit-appearance:none;height:6px;border-radius:6px;background:rgba(255,255,255,0.04);outline:none}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);box-shadow:0 2px 6px rgba(0,0,0,0.4);cursor:pointer}
 .time-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:8px}
-.settings{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
-.chip{background:#0b1316;padding:8px 12px;border-radius:999px;font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:8px}
-.panel{background:transparent;border-radius:var(--radius);padding:6px;display:flex;flex-direction:column;min-height:0}
+.settings{display:flex;gap:8px;align-items:center;margin-top:12px}
+.chip{background:#0b1316;padding:8px 12px;border-radius:999px;font-size:13px;color:var(--muted)}
+.panel{background:transparent;border-radius:var(--radius);padding:8px;display:flex;flex-direction:column;min-height:0}
 .toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}
 .search{flex:1;background:#071018;border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:center;border:1px solid rgba(255,255,255,0.02)}
 .search input{background:transparent;border:0;outline:0;color:var(--text);width:100%}
-.icons{display:flex;gap:8px;align-items:center}
-.playlist{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border-radius:12px;padding:8px;overflow:auto;flex:1;box-shadow:inset 0 -30px 60px rgba(0,0,0,0.20)}
+.playlist{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border-radius:12px;padding:8px;overflow:auto;flex:1}
 .track{display:grid;grid-template-columns:64px 1fr 80px;gap:12px;align-items:center;padding:10px;border-radius:10px;cursor:pointer}
 .track:hover{background:rgba(255,255,255,0.02)}
 .track.active{background:linear-gradient(90deg, rgba(29,185,84,0.08), rgba(29,185,84,0.03));}
-.thumb{width:64px;height:64px;border-radius:10px;overflow:hidden;flex-shrink:0}
+.thumb{width:64px;height:64px;border-radius:10px;overflow:hidden}
 .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sub{font-size:12px;color:var(--muted)}
 .time{font-size:12px;color:var(--muted);text-align:right}
-.mini{position:fixed;left:20px;right:20px;bottom:20px;height:72px;background:#071017;border-radius:12px;padding:10px;display:flex;align-items:center;gap:12px;box-shadow:0 18px 50px rgba(2,6,10,0.6);cursor:pointer}
+.mini{position:fixed;left:20px;right:20px;bottom:20px;height:72px;background:#071017;border-radius:12px;padding:10px;display:flex;align-items:center;gap:12px;box-shadow:0 18px 50px rgba(2,6,10,0.6)}
 .mini .thumb{width:56px;height:56px;border-radius:8px;overflow:hidden}
-.mini .info{flex:1;min-width:0}
-.mini .title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mini .artist{font-size:12px;color:var(--muted)}
-.mini .controls{display:flex;gap:8px;align-items:center}
 .muted-small{font-size:12px;color:var(--muted)}
-@media (max-width:920px){
-  .app{grid-template-columns:1fr;gap:12px;padding:12px}
-  .cover{height:220px}
-  .card{order:2}
-  .panel{order:1}
-}
+.status{font-size:13px;color:var(--muted);margin-top:8px}
+@media (max-width:920px){.app{grid-template-columns:1fr;gap:12px;padding:12px}.cover{height:220px}}
 </style>
 </head>
 <body>
@@ -88,31 +72,33 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       </div>
 
       <div class="settings">
-        <div class="chip"><label style="cursor:pointer"><input id="shuffle" type="checkbox" style="margin-right:8px">Shuffle</label></div>
-        <div class="chip"><label style="cursor:pointer"><input id="repeat" type="checkbox" style="margin-right:8px">Repeat</label></div>
+        <div class="chip"><label><input id="shuffle" type="checkbox" style="margin-right:8px">Shuffle</label></div>
+        <div class="chip"><label><input id="repeat" type="checkbox" style="margin-right:8px">Repeat</label></div>
         <div style="flex:1"></div>
         <div class="chip" id="autoplayChip" title="Toggle autoplay">Autoplay: On</div>
       </div>
+
+      <div class="status" id="status">Starting detection...</div>
     </div>
 
     <div class="panel">
       <div class="toolbar">
         <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="opacity:.9"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><input id="filter" placeholder="Filter tracks..." /></div>
-        <div class="icons"><button class="btn" id="import" title="Import (file picker)">⤓</button></div>
+        <div><button class="btn" id="import" title="Import (file picker)">⤓</button></div>
       </div>
 
       <div class="playlist" id="playlist" role="list"></div>
-      <div class="muted-small" style="margin-top:10px">Auto-detects .mp3 in same folder (GitHub API + directory listing). Use the import button to pick files locally if needed.</div>
+      <div class="muted-small" style="margin-top:10px">Auto-detects *.mp3 in same folder (list.json, directory listing, GitHub API). See console for diagnostics.</div>
     </div>
   </div>
 
   <div class="mini" id="mini" title="Open player">
     <div class="thumb" id="miniThumb"><img id="miniImg" style="width:100%;height:100%;object-fit:cover"></div>
-    <div class="info">
-      <div class="title" id="miniTitle">No track</div>
-      <div class="artist" id="miniArtist">Siva Manihandan</div>
+    <div style="flex:1">
+      <div id="miniTitle" style="font-weight:700">No track</div>
+      <div id="miniArtist" class="muted-small">Siva Manihandan</div>
     </div>
-    <div class="controls">
+    <div style="display:flex;gap:8px;align-items:center">
       <button class="btn" id="miniPrev">⏮</button>
       <button class="play" id="miniPlay">▶</button>
       <button class="btn" id="miniNext">⏭</button>
@@ -121,14 +107,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 
   <audio id="player" preload="metadata"></audio>
 
-<!-- optional embedded list -->
-<script id="initialTracks" type="application/json">[]</script>
-
 <script>
-/* Same player as before, drag & drop removed.
-   - Auto-detect .mp3 in same folder (list.json / directory / GitHub API)
-   - Cover shows starting letter for each song
-   - Import button (file picker) kept for local testing
+/*
+Robust auto-loader for .mp3 files in the current folder.
+Strategies attempted (in order):
+ 1) Embedded list (edit inside HTML if desired)
+ 2) ./list.json
+ 3) Parse ./ directory HTML (many hosts show index listing)
+ 4) GitHub API heuristics (public repos; tries gh-pages/main/master)
+If none found, the page remains usable (import button).
+Diagnostics are also printed to console for debugging.
 */
 
 const DEFAULT_ARTIST = 'Siva Manihandan';
@@ -143,11 +131,8 @@ const seek = document.getElementById('seek');
 const curTime = document.getElementById('curTime');
 const durTime = document.getElementById('durTime');
 const countEl = document.getElementById('count');
-const shuffleEl = document.getElementById('shuffle');
-const repeatEl = document.getElementById('repeat');
-const autoplayChip = document.getElementById('autoplayChip');
 const filterInput = document.getElementById('filter');
-const coverImg = document.getElementById('coverImg');
+const statusEl = document.getElementById('status');
 
 const miniImg = document.getElementById('miniImg');
 const miniTitle = document.getElementById('miniTitle');
@@ -162,38 +147,30 @@ let current = 0;
 let isShuffle = false;
 let isRepeat = false;
 let autoplay = true;
-
 player.volume = 1;
 
-// utilities
+// --- helpers ---
+function log(s){ try{ console.log('[player] ' + s); }catch(e){} }
+function setStatus(s){ statusEl.textContent = s; log(s); }
 function fmtTime(s){ if(isNaN(s)||!isFinite(s)) return '0:00'; const m=Math.floor(s/60); const sec=Math.floor(s%60).toString().padStart(2,'0'); return `${m}:${sec}`; }
 function escapeHtml(s){ return String(s).replace(/[&<>"'`]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c])); }
 function hashCode(s){ let h=0; for(let i=0;i<s.length;i++){ h = ((h<<5)-h) + s.charCodeAt(i); h |= 0; } return h; }
-
-// small playlist thumbnail (initials)
 function makeThumb(name){
-  const initials = name.split(/[\s\-_]+/).map(t=>t[0]||'').slice(0,2).join('').toUpperCase() || 'S';
+  const initials = (name || 'S').split(/[\s\-_]+/).map(t=>t[0]||'').slice(0,2).join('').toUpperCase();
   const colors = ['#1db954','#6b8bff','#ff7a7a','#9b6bff'];
   const color = colors[Math.abs(hashCode(name)) % colors.length];
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512'><rect width='100%' height='100%' fill='${color}'/><text x='50%' y='56%' font-size='140' text-anchor='middle' fill='rgba(255,255,255,0.95)' font-family='Inter,Arial' font-weight='800'>${escapeHtml(initials)}</text></svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
-
-// cover generator
 function makeCoverLetter(name){
   const letter = (String(name||'').trim()[0] || 'S').toUpperCase();
   const seed = Math.abs(hashCode(name)) % 360;
-  const c1 = `hsl(${seed} 60% 35%)`;
-  const c2 = `hsl(${(seed+40)%360} 60% 22%)`;
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='1024' height='1024'>
-    <defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'><stop offset='0' stop-color='${c1}'/><stop offset='1' stop-color='${c2}'/></linearGradient></defs>
-    <rect width='100%' height='100%' fill='url(#g)'/>
-    <text x='50%' y='60%' font-size='520' text-anchor='middle' fill='rgba(255,255,255,0.95)' font-family='Inter, Arial, Helvetica' font-weight='900'>${escapeHtml(letter)}</text>
-  </svg>`;
+  const c1 = `hsl(${seed} 60% 35%)`; const c2 = `hsl(${(seed+40)%360} 60% 22%)`;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='1024' height='1024'><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'><stop offset='0' stop-color='${c1}'/><stop offset='1' stop-color='${c2}'/></linearGradient></defs><rect width='100%' height='100%' fill='url(#g)'/><text x='50%' y='60%' font-size='520' text-anchor='middle' fill='rgba(255,255,255,0.95)' font-family="Inter,Arial" font-weight="900">${escapeHtml(letter)}</text></svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
 
-// render playlist
+// --- UI rendering ---
 function render(filter=''){
   playlistEl.innerHTML = '';
   const filtered = tracks.filter(t => (t.name + ' ' + (t.artist||'')).toLowerCase().includes(filter.toLowerCase()));
@@ -202,22 +179,15 @@ function render(filter=''){
     const row = document.createElement('div');
     row.className = 'track' + (i === current ? ' active' : '');
     row.dataset.index = i;
-    row.innerHTML = `
-      <div class="thumb"><img src="${t.thumb}" alt="" style="width:100%;height:100%;object-fit:cover"></div>
-      <div style="min-width:0">
-        <div class="name">${escapeHtml(t.name)}</div>
-        <div class="sub">${escapeHtml(t.artist || DEFAULT_ARTIST)}</div>
-      </div>
-      <div class="time">${t.duration ? fmtTime(t.duration) : ''}</div>
-    `;
+    row.innerHTML = `<div class="thumb"><img src="${t.thumb}" alt=""></div>
+      <div style="min-width:0"><div class="name">${escapeHtml(t.name)}</div><div class="sub">${escapeHtml(t.artist||DEFAULT_ARTIST)}</div></div>
+      <div class="time">${t.duration?fmtTime(t.duration):''}</div>`;
     row.addEventListener('click', ()=> playIndex(i));
     playlistEl.appendChild(row);
   });
   countEl.textContent = tracks.length + ' tracks';
   updateMini();
 }
-
-// update mini player
 function updateMini(){
   const t = tracks[current];
   miniTitle.textContent = t ? t.name : 'No track';
@@ -227,203 +197,170 @@ function updateMini(){
   miniPlay.textContent = paused ? '▶' : '⏸';
   playBtn.textContent = paused ? '▶' : '⏸';
 }
-
-// set metadata & cover
 function setMeta(t){
   document.getElementById('trackTitle').textContent = t ? t.name : 'No track';
   document.getElementById('artistLabel').textContent = t ? (t.artist || DEFAULT_ARTIST) : DEFAULT_ARTIST;
-  coverImg.src = t ? makeCoverLetter(t.name) : '';
+  document.getElementById('coverImg').src = t ? makeCoverLetter(t.name) : '';
   if('mediaSession' in navigator && t){
-    try{
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: t.name,
-        artist: t.artist || DEFAULT_ARTIST,
-        album: 'Local',
-        artwork: [{ src: t.thumb, sizes: '512x512', type: 'image/png' }]
-      });
-    }catch(e){}
+    try{ navigator.mediaSession.metadata = new MediaMetadata({title:t.name, artist:t.artist||DEFAULT_ARTIST, album:'Local', artwork:[{src:t.thumb,sizes:'512x512'}]}); }catch(e){}
   }
 }
 
-// play index
+// --- playback ---
 function playIndex(i){
   if(tracks.length === 0) return;
-  if(i<0) i=0;
-  if(i>=tracks.length) i=0;
+  if(i<0) i=0; if(i>=tracks.length) i=0;
   current = i;
   const t = tracks[current];
-  if(!t) return;
   player.src = t.url;
   setMeta(t);
   player.play().catch(()=>{});
   render(filterInput.value);
 }
+function playNext(){ if(isRepeat){ player.currentTime=0; player.play(); return; } if(isShuffle){ playIndex(Math.floor(Math.random()*tracks.length)); return; } playIndex((current+1) % tracks.length); }
+function playPrev(){ if(player.currentTime>3){ player.currentTime=0; player.play(); return; } playIndex(Math.max(0, current-1)); }
 
-// next / prev
-function playNext(){
-  if(isRepeat){ player.currentTime = 0; player.play(); return; }
-  if(isShuffle){ if(tracks.length===0) return; const n = Math.floor(Math.random()*tracks.length); playIndex(n); return; }
-  if(current < tracks.length - 1) playIndex(current+1);
-  else playIndex(0);
-}
-function playPrev(){
-  if(player.currentTime > 3){ player.currentTime = 0; player.play(); return; }
-  if(current > 0) playIndex(current-1); else playIndex(0);
-}
+player.addEventListener('timeupdate', ()=> { if(player.duration){ seek.value = (player.currentTime / player.duration) * 100; curTime.textContent = fmtTime(player.currentTime); durTime.textContent = fmtTime(player.duration); }});
+player.addEventListener('loadedmetadata', ()=> { if(player.duration && tracks[current]){ tracks[current].duration = player.duration; render(filterInput.value); }});
+player.addEventListener('ended', ()=> { if(autoplay) playNext(); else { playBtn.textContent='▶'; miniPlay.textContent='▶'; }});
+seek.addEventListener('input', ()=> { if(player.duration) player.currentTime = (seek.value/100) * player.duration; });
 
-// player events
-player.addEventListener('timeupdate', ()=> {
-  if(player.duration){
-    seek.value = (player.currentTime / player.duration) * 100;
-    curTime.textContent = fmtTime(player.currentTime);
-    durTime.textContent = fmtTime(player.duration);
-  }
-});
-player.addEventListener('ended', ()=> { if(autoplay) playNext(); else { playBtn.textContent='▶'; miniPlay.textContent='▶'; } });
-player.addEventListener('loadedmetadata', ()=> {
-  if(player.duration && tracks[current]) {
-    tracks[current].duration = player.duration;
-    durTime.textContent = fmtTime(player.duration);
-    render(filterInput.value);
-  }
-});
-seek.addEventListener('input', ()=> { if(player.duration) player.currentTime = (seek.value / 100) * player.duration; });
-
-// UI handlers
-playBtn.addEventListener('click', ()=>{
-  if(!player.src && tracks.length) playIndex(0);
-  else if(player.paused){ player.play(); playBtn.textContent='⏸'; miniPlay.textContent='⏸'; }
-  else { player.pause(); playBtn.textContent='▶'; miniPlay.textContent='▶'; }
-});
+playBtn.addEventListener('click', ()=> { if(!player.src && tracks.length) { playIndex(0); return; } if(player.paused){ player.play(); playBtn.textContent='⏸'; miniPlay.textContent='⏸'; } else { player.pause(); playBtn.textContent='▶'; miniPlay.textContent='▶'; }});
 prevBtn.addEventListener('click', playPrev);
-nextBtn.addEventListener('click', ()=> { if(current < tracks.length -1) playIndex(current+1); else playIndex(0); });
-
+nextBtn.addEventListener('click', playNext);
 miniPrev.addEventListener('click', e=>{ e.stopPropagation(); playPrev(); });
 miniNext.addEventListener('click', e=>{ e.stopPropagation(); playNext(); });
 miniPlay.addEventListener('click', e=>{ e.stopPropagation(); playBtn.click(); });
 
-shuffleEl.addEventListener('change', ()=> { isShuffle = shuffleEl.checked; });
-repeatEl.addEventListener('change', ()=> { isRepeat = repeatEl.checked; });
 filterInput.addEventListener('input', ()=> render(filterInput.value));
+document.addEventListener('keydown', e=> { const tag=document.activeElement&&document.activeElement.tagName.toLowerCase(); if(tag==='input'||tag==='textarea') return; if(e.code==='Space'){ e.preventDefault(); playBtn.click(); } if(e.code==='ArrowRight') nextBtn.click(); if(e.code==='ArrowLeft') prevBtn.click(); });
 
-// keyboard
-window.addEventListener('keydown', e=> { if(e.code==='Space'){ e.preventDefault(); playBtn.click(); } if(e.code==='ArrowRight') nextBtn.click(); if(e.code==='ArrowLeft') prevBtn.click(); });
-
-// media session
-if('mediaSession' in navigator){
-  navigator.mediaSession.setActionHandler('play', ()=>{ player.play(); playBtn.textContent='⏸'; miniPlay.textContent='⏸'; });
-  navigator.mediaSession.setActionHandler('pause', ()=>{ player.pause(); playBtn.textContent='▶'; miniPlay.textContent='▶'; });
-  navigator.mediaSession.setActionHandler('previoustrack', ()=> playPrev());
-  navigator.mediaSession.setActionHandler('nexttrack', ()=> playNext());
-}
-
-// import (file picker) kept for local testing — drag & drop removed per request
+// import button (file picker) — kept optional
 importBtn.addEventListener('click', ()=> {
-  const inp = document.createElement('input');
-  inp.type = 'file';
-  inp.multiple = true;
-  inp.accept = '.mp3';
-  inp.onchange = ()=> {
-    if(!inp.files) return;
-    const files = Array.from(inp.files).filter(f => AUDIO_RE.test(f.name));
-    if(!files.length) return;
-    tracks.forEach(t=> { if(t._blob) URL.revokeObjectURL(t.url); });
-    tracks = files.map(f => {
-      const name = f.name.replace(/\.[^/.]+$/,'');
-      return { name, url: URL.createObjectURL(f), artist: DEFAULT_ARTIST, source:'local', _blob:true, thumb: makeThumb(name) };
-    });
-    populateDurationsForAll(tracks).then(()=> {
-      render('');
-      if(tracks.length) playIndex(0);
-    });
-  };
+  const inp = document.createElement('input'); inp.type='file'; inp.multiple=true; inp.accept='.mp3';
+  inp.onchange = ()=> { if(!inp.files) return; const files = Array.from(inp.files).filter(f => AUDIO_RE.test(f.name)); if(!files.length){ setStatus('No .mp3 files chosen.'); return; } tracks.forEach(t=> { if(t._blob) URL.revokeObjectURL(t.url); }); tracks = files.map(f => ({ name: f.name.replace(/\.[^/.]+$/,''), url: URL.createObjectURL(f), artist: DEFAULT_ARTIST, _blob:true, thumb: makeThumb(f.name.replace(/\.[^/.]+$/,'')) })); populateDurations().then(()=> { render(''); if(tracks.length) playIndex(0); setStatus('Loaded local files via import.'); }); };
   inp.click();
 });
 
-// durations helper
-function loadDurationForTrack(track){
-  return new Promise((resolve)=> {
-    if(track.duration && !isNaN(track.duration)) return resolve(track);
-    const a = document.createElement('audio');
-    a.preload = 'metadata';
-    a.src = track.url;
+// durations
+async function populateDurations(){
+  const promises = tracks.map(t => new Promise(resolve => {
+    if(t.duration && !isNaN(t.duration)) return resolve(t);
+    const a = document.createElement('audio'); a.preload='metadata'; a.src = t.url;
     const tidy = ()=> { try{ a.remove(); }catch(e){} };
-    const onloaded = ()=> {
-      if(!isNaN(a.duration) && isFinite(a.duration)) track.duration = a.duration;
-      tidy(); resolve(track);
-    };
-    const onerror = ()=> { tidy(); resolve(track); };
-    a.addEventListener('loadedmetadata', onloaded, {once:true});
-    a.addEventListener('error', onerror, {once:true});
-    a.load();
-    setTimeout(()=> { resolve(track); try{ a.remove(); }catch(e){} }, 6000);
-  });
-}
-async function populateDurationsForAll(list){
-  const promises = list.map(t => loadDurationForTrack(t));
+    const onmeta = ()=> { if(!isNaN(a.duration) && isFinite(a.duration)) t.duration = a.duration; tidy(); resolve(t); };
+    const onerr = ()=> { tidy(); resolve(t); };
+    a.addEventListener('loadedmetadata', onmeta, {once:true}); a.addEventListener('error', onerr, {once:true}); a.load();
+    setTimeout(()=> { resolve(t); try{ a.remove(); }catch(e){} }, 6000);
+  }));
   await Promise.all(promises);
 }
 
-// auto-detect: embedded, list.json, directory, GitHub API
-function loadEmbedded(){
+// --- detection strategies ---
+
+// 1) embedded JSON
+function tryEmbedded(){
   try{
-    const el = document.getElementById('initialTracks');
+    const el = document.querySelector('script#initialTracks');
+    if(!el) return false;
     const arr = JSON.parse(el.textContent || '[]');
-    const parsed = arr.filter(x => typeof x === 'string').map(s => {
+    if(!Array.isArray(arr) || arr.length === 0) return false;
+    const list = arr.filter(s => typeof s === 'string' && AUDIO_RE.test(s)).map(s => {
       const name = s.split('/').pop().replace(/\.[^/.]+$/,'');
-      return { name, url: s, artist: DEFAULT_ARTIST, source:'embedded', thumb: makeThumb(name) };
+      return { name, url: s, artist: DEFAULT_ARTIST, thumb: makeThumb(name) };
     });
-    if(parsed.length){
+    if(list.length){
       tracks.forEach(t=> { if(t._blob) URL.revokeObjectURL(t.url); });
-      tracks = parsed;
-      populateDurationsForAll(tracks).then(()=> { render(''); if(tracks.length) playIndex(0); });
+      tracks = list;
+      setStatus(`Loaded ${tracks.length} file(s) from embedded list.`);
       return true;
     }
-  }catch(e){}
+  }catch(e){ log('embedded parse error: '+e); }
   return false;
 }
 
-async function tryAutoLoad(){
-  // list.json
-  try {
+// 2) try ./list.json
+async function tryListJson(){
+  try{
     const r = await fetch('./list.json', {cache:'no-store'});
-    if(r.ok){
-      const arr = await r.json();
-      if(Array.isArray(arr) && arr.length){
-        const list = arr.filter(n => AUDIO_RE.test(n)).map(n => ({ name: n.split('/').pop().replace(/\.[^/.]+$/,''), url: n, artist: DEFAULT_ARTIST, source:'listjson', thumb: makeThumb(n) }));
-        tracks = list;
-        await populateDurationsForAll(tracks);
-        render(''); if(tracks.length) playIndex(0);
-        return true;
-      }
+    if(!r.ok) return false;
+    const arr = await r.json();
+    if(!Array.isArray(arr) || arr.length === 0) return false;
+    const list = arr.filter(s => typeof s === 'string' && AUDIO_RE.test(s)).map(s => ({ name: s.split('/').pop().replace(/\.[^/.]+$/,''), url: s, artist: DEFAULT_ARTIST, thumb: makeThumb(s) }));
+    if(list.length){
+      tracks.forEach(t=> { if(t._blob) URL.revokeObjectURL(t.url); });
+      tracks = list;
+      await populateDurations();
+      setStatus(`Loaded ${tracks.length} file(s) from list.json.`);
+      return true;
     }
-  }catch(e){}
+  }catch(e){ log('list.json failed: '+e); }
+  return false;
+}
 
-  // directory listing parse
-  try {
+// 3) try parsing ./ directory listing HTML (most flexible)
+async function tryDirectory(){
+  try{
     const r = await fetch('./', {cache:'no-store'});
-    if(r.ok){
-      const text = await r.text();
-      const doc = new DOMParser().parseFromString(text, 'text/html');
-      const anchors = Array.from(doc.getElementsByTagName('a'));
-      const files = anchors.map(a => a.getAttribute('href') || '').filter(h => AUDIO_RE.test(h));
-      if(files.length){
-        const uniq = Array.from(new Set(files)).sort();
-        tracks = uniq.map(n => ({ name: decodeURIComponent(n.split('/').pop()).replace(/\.[^/.]+$/,''), url: n, artist: DEFAULT_ARTIST, source:'server', thumb: makeThumb(n) }));
-        await populateDurationsForAll(tracks);
-        render(''); if(tracks.length) playIndex(0);
-        return true;
+    if(!r.ok) return false;
+    const text = await r.text();
+    const doc = new DOMParser().parseFromString(text, 'text/html');
+    // capture <a href="...">, <pre><a>, table listings etc.
+    let anchors = Array.from(doc.querySelectorAll('a')).map(a => a.getAttribute('href') || '');
+    // also try to find urls in HTML text (some index pages don't use anchors)
+    if(anchors.length === 0){
+      const matches = text.match(/href\s*=\s*["']([^"']+\.(mp3)(\?[^"']*)?)["']/ig);
+      if(matches) anchors = matches.map(m => m.replace(/href\s*=\s*["']?/i,'').replace(/["']$/,''));
+    }
+    // normalize and dedupe
+    anchors = anchors.map(h => h.trim()).filter(Boolean);
+    const mp3s = [];
+    for(const h of anchors){
+      // skip parent links
+      if(h === '../' || h === './' || h === '/') continue;
+      // find any token that ends with .mp3 (with optional query)
+      const m = h.match(/([^'"]+\.mp3(\?.*)?)$/i);
+      if(m){
+        let u = m[1];
+        // if relative, convert to absolute relative to current location
+        if(!/^https?:\/\//i.test(u) && u.startsWith('/')) {
+          u = location.origin + u;
+        } else if(!/^https?:\/\//i.test(u) && !u.startsWith('./') && !u.startsWith('../')) {
+          // relative path — prefix current path
+          u = (location.pathname.endsWith('/') ? location.pathname : location.pathname.substring(0, location.pathname.lastIndexOf('/')+1)) + u;
+          // make absolute
+          u = location.origin + u;
+        } else if(u.startsWith('./') || u.startsWith('../')){
+          const base = new URL(location.href);
+          u = new URL(u, base).href;
+        }
+        mp3s.push(u);
       }
     }
-  }catch(e){}
+    const uniq = Array.from(new Set(mp3s));
+    if(uniq.length){
+      tracks.forEach(t=> { if(t._blob) URL.revokeObjectURL(t.url); });
+      tracks = uniq.map(u => {
+        const name = decodeURIComponent(u.split('/').pop()).replace(/\?.*$/,'').replace(/\.[^/.]+$/,'');
+        return { name, url: u, artist: DEFAULT_ARTIST, thumb: makeThumb(name) };
+      });
+      await populateDurations();
+      setStatus(`Loaded ${tracks.length} mp3(s) from server directory listing.`);
+      return true;
+    }
+  }catch(e){ log('directory parse failed: '+e); }
+  return false;
+}
 
-  // try GitHub api for public pages
-  try {
+// 4) GitHub API attempt (best for GitHub Pages public)
+async function tryGithubApi(){
+  try{
     const host = location.hostname.toLowerCase();
     const path = location.pathname.replace(/^\/+|\/+$/g,'');
     const parts = path ? path.split('/') : [];
     const attempts = [];
-    if(host.endsWith('github.io')){
-      const owner = host.split('.')[0];
-      attempts.push({owner, repo: owner + '.github.io', path: parts.join('/')});
-      if(parts.length) attempts.push({owner
+    if(host === 'raw.githubusercontent.com'){
+      // raw URL format: /owner/repo/branch/...
+      const p = parts;
+      if(p.length >= 3){
+        attempts.push({owner:p[0], repo:p[1], path: p.slice(3).join('/'), branch: p[2]
