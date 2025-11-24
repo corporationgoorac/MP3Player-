@@ -1,16 +1,12 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Dark MP3 Player — Siva Manihandan</title>
 <style>
-:root{
-  --bg:#0b0f13; --panel:#111417; --muted:#9aa4b2; --accent:#1db954; --glass:rgba(255,255,255,0.03);
-  --text:#e6eef3;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#071018,#0b0f13);color:var(--text)}
+:root{--bg:#0b0f13;--panel:#111417;--muted:#9aa4b2;--accent:#1db954;--glass:rgba(255,255,255,0.03);--text:#e6eef3}
+*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#071018,#0b0f13);color:var(--text)}
 .app{display:flex;gap:20px;padding:20px;height:100vh}
 .left{width:340px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:16px;padding:16px;display:flex;flex-direction:column}
 .cover{height:300px;border-radius:12px;background:linear-gradient(180deg,#15171a,#0f1113);display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -38,7 +34,6 @@ html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial
 .bottom-bar{display:flex;align-items:center;gap:12px;margin-top:12px}
 .chip{background:var(--panel);padding:8px 12px;border-radius:999px;font-size:13px}
 .hint{color:var(--muted);font-size:13px}
-.tog{display:inline-flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02)}
 .mini-player{position:fixed;left:12px;right:12px;bottom:12px;height:68px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:8px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 30px rgba(0,0,0,0.6);cursor:pointer}
 .mini-cover{width:52px;height:52px;border-radius:8px;overflow:hidden}
 .mini-info{flex:1;min-width:0}
@@ -47,19 +42,16 @@ html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial
 .mini-controls{display:flex;gap:8px;align-items:center}
 .mini-controls .btn{padding:8px}
 @media(max-width:900px){.app{flex-direction:column;padding:12px}.search input{width:140px}}
-.form-row{display:flex;gap:8px;align-items:center}
-.form-row input{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text)}
-.small{font-size:12px;color:var(--muted)}
+.notice{padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);color:var(--muted);margin-bottom:10px}
 </style>
 </head>
 <body>
   <div class="app">
     <div class="left">
-      <div class="cover" id="cover">
-        <img id="coverImg" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='800'><rect width='100%' height='100%' fill='%230b0f13'/><text x='50%' y='50%' font-size='46' fill='%231db954' dominant-baseline='middle' text-anchor='middle'>Siva Manihandan</text></svg>" alt="cover">
-      </div>
+      <div class="cover" id="cover"><img id="coverImg" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='800'><rect width='100%' height='100%' fill='%230b0f13'/><text x='50%' y='50%' font-size='46' fill='%231db954' dominant-baseline='middle' text-anchor='middle'>Siva Manihandan</text></svg>" alt="cover"></div>
 
       <div class="meta">
+        <div id="notice" class="notice" style="display:none"></div>
         <div class="title" id="trackTitle">No track loaded</div>
         <div class="artist">Siva Manihandan</div>
       </div>
@@ -77,23 +69,13 @@ html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial
         <div class="time-row"><span id="curTime">0:00</span><span id="durTime">0:00</span></div>
       </div>
 
-      <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
-        <div class="form-row">
-          <input id="ghOwner" placeholder="GitHub owner (e.g. your-username)" />
-          <input id="ghRepo" placeholder="Repo (e.g. your-repo)" />
-        </div>
-        <div class="form-row">
-          <input id="ghPath" placeholder="Folder path in repo (leave blank for root /)" style="flex:1" />
-          <button class="btn" id="loadGh">Load from GitHub</button>
-        </div>
-        <div class="small">Tip: for GitHub Pages, put this index.html in the repo and set owner/repo above; if mp3s are in same folder, leave path blank.</div>
+      <div class="bottom-bar">
+        <div class="hint">This page auto-loads MP3s from its folder (when hosted). If you opened locally via file://, automatic load is blocked by browser security — host it (GitHub Pages) or use the \"Choose folder\" button below.</div>
+      </div>
 
-        <div style="margin-top:8px" class="bottom-bar">
-          <label class="btn" for="dirPicker">Choose folder (local)</label>
-          <input type="file" id="dirPicker" webkitdirectory directory multiple style="display:none">
-          <div style="flex:1"></div>
-          <div class="chip">Volume <input id="vol" type="range" min="0" max="1" step="0.01" value="0.9" style="width:110px;margin-left:8px"></div>
-        </div>
+      <div style="margin-top:10px">
+        <label class="btn" for="dirPicker">Choose folder (local fallback)</label>
+        <input id="dirPicker" type="file" webkitdirectory directory multiple style="display:none">
       </div>
     </div>
 
@@ -112,10 +94,7 @@ html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial
 
   <div class="mini-player" id="miniPlayer" title="Click to open player">
     <div class="mini-cover"><img id="miniCoverImg" src="" alt="cover" style="width:52px;height:52px;object-fit:cover"></div>
-    <div class="mini-info">
-      <div class="mini-title" id="miniTitle">No track</div>
-      <div class="mini-artist">Siva Manihandan</div>
-    </div>
+    <div class="mini-info"><div class="mini-title" id="miniTitle">No track</div><div class="mini-artist">Siva Manihandan</div></div>
     <div class="mini-controls">
       <button class="btn" id="miniPrev">⏮</button>
       <button class="btn play" id="miniPlay">▶</button>
@@ -126,9 +105,15 @@ html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial
   <audio id="player" preload="metadata"></audio>
 
 <script>
-/* Dark MP3 player — supports GitHub public repo folder load + local folder */
+/* Auto-load MP3s from SAME FOLDER as this index.html when hosted.
+   Order of attempts:
+   1) ./list.json
+   2) GitHub API if hostname ends with github.io (infers owner/repo/path)
+   3) fetch('./') and parse HTML directory listing (if server provides)
+   4) fallback -> ask user to choose folder (file:// can't list)
+*/
 const DEFAULT_ARTIST = 'Siva Manihandan';
-const AUDIO_RE = /\.(mp3|m4a|wav|ogg|flac)$/i;
+const AUDIO_EXT = /\.(mp3|m4a|wav|ogg|flac)$/i;
 
 const player = document.getElementById('player');
 const playlistEl = document.getElementById('playlist');
@@ -139,12 +124,10 @@ const seek = document.getElementById('seek');
 const curTime = document.getElementById('curTime');
 const durTime = document.getElementById('durTime');
 const countEl = document.getElementById('count');
-const dirPicker = document.getElementById('dirPicker');
 const filterInput = document.getElementById('filter');
-const titleEl = document.getElementById('trackTitle');
-const vol = document.getElementById('vol');
-const shuffleBtn = document.getElementById('shuffleBtn');
-const repeatBtn = document.getElementById('repeatBtn');
+const trackTitle = document.getElementById('trackTitle');
+const dirPicker = document.getElementById('dirPicker');
+const notice = document.getElementById('notice');
 const mini = document.getElementById('miniPlayer');
 const miniTitle = document.getElementById('miniTitle');
 const miniPlay = document.getElementById('miniPlay');
@@ -152,34 +135,29 @@ const miniPrev = document.getElementById('miniPrev');
 const miniNext = document.getElementById('miniNext');
 const miniCoverImg = document.getElementById('miniCoverImg');
 
-const ghOwner = document.getElementById('ghOwner');
-const ghRepo = document.getElementById('ghRepo');
-const ghPath = document.getElementById('ghPath');
-const loadGhBtn = document.getElementById('loadGh');
-
 let tracks = []; // {name, url, artist, source, _blob}
 let current = 0;
 let isShuffle = false;
 let isRepeat = false;
 
-vol.addEventListener('input', ()=> player.volume = vol.value);
-player.volume = vol.value;
+// UI helpers
+function setNotice(msg){
+  if(msg){ notice.style.display='block'; notice.textContent = msg; }
+  else { notice.style.display='none'; notice.textContent=''; }
+}
 
-function fmtTime(s){ if(isNaN(s)) return '0:00'; const m=Math.floor(s/60); const sec=Math.floor(s%60).toString().padStart(2,'0'); return `${m}:${sec}`; }
-
-function escapeHtml(s){ return String(s).replace(/[&<>"'`]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c])); }
+function escapeHtml(s){ return String(s).replace(/[&<>"'`]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c])); }
+function fmt(s){ if(isNaN(s)) return '0:00'; const m=Math.floor(s/60); const sec=Math.floor(s%60).toString().padStart(2,'0'); return `${m}:${sec}`; }
 
 function render(filter=''){
-  playlistEl.innerHTML = '';
+  playlistEl.innerHTML='';
   const list = tracks.filter(t => (t.name + ' ' + t.artist).toLowerCase().includes(filter.toLowerCase()));
   list.forEach(t => {
     const i = tracks.indexOf(t);
     const row = document.createElement('div');
     row.className = 'track' + (i===current ? ' active' : '');
     row.dataset.index = i;
-    row.innerHTML = `<div class="num">${i+1}</div>
-      <div><div class="name">${escapeHtml(t.name)}</div><div class="sub">${escapeHtml(t.artist)}</div></div>
-      <div style="text-align:right;color:var(--muted)">${t.source||''}</div>`;
+    row.innerHTML = `<div class="num">${i+1}</div><div><div class="name">${escapeHtml(t.name)}</div><div class="sub">${escapeHtml(t.artist)}</div></div><div style="text-align:right;color:var(--muted)">${t.source||''}</div>`;
     row.addEventListener('click', ()=> playIndex(i));
     playlistEl.appendChild(row);
   });
@@ -195,52 +173,36 @@ function updateMini(){
 }
 
 function setMeta(t){
-  titleEl.textContent = t ? t.name : 'No track';
+  trackTitle.textContent = t ? t.name : 'No track';
   if('mediaSession' in navigator && t){
     try{
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: t.name,
-        artist: t.artist || DEFAULT_ARTIST,
-        album: 'Local Folder',
-        artwork: [{src: document.getElementById('coverImg').src, sizes:'512x512', type:'image/png'}]
-      });
+      navigator.mediaSession.metadata = new MediaMetadata({ title: t.name, artist: t.artist||DEFAULT_ARTIST, album:'Local Folder', artwork:[{src:document.getElementById('coverImg').src,sizes:'512x512',type:'image/png'}] });
     }catch(e){}
   }
 }
 
 function playIndex(i){
-  if(i<0 || i>=tracks.length) return;
+  if(i<0||i>=tracks.length) return;
   current = i;
   player.src = tracks[current].url;
   setMeta(tracks[current]);
-  player.play().catch(()=>{ /* autoplay may be blocked until gesture */ });
-  playBtn.textContent = '⏸';
-  miniPlay.textContent = '⏸';
+  player.play().catch(()=>{}); // may be blocked until gesture
+  playBtn.textContent='⏸'; miniPlay.textContent='⏸';
   render(filterInput.value);
   updateMini();
 }
 
 function playNext(){
   if(isRepeat){ player.currentTime = 0; player.play(); return; }
-  if(isShuffle){ const n = Math.floor(Math.random()*tracks.length); playIndex(n); return; }
-  if(current < tracks.length - 1) playIndex(current+1);
+  if(isShuffle){ if(tracks.length===0) return; const n = Math.floor(Math.random()*tracks.length); playIndex(n); return; }
+  if(current < tracks.length -1) playIndex(current+1);
   else playIndex(0); // loop
 }
-
-function playPrev(){
-  if(player.currentTime > 3){ player.currentTime = 0; player.play(); return; }
-  if(current > 0) playIndex(current-1); else playIndex(0);
-}
+function playPrev(){ if(player.currentTime>3){ player.currentTime=0; player.play(); return; } if(current>0) playIndex(current-1); else playIndex(0); }
 
 player.addEventListener('ended', ()=> playNext());
-player.addEventListener('timeupdate', ()=> {
-  if(player.duration){
-    seek.value = (player.currentTime / player.duration) * 100;
-    curTime.textContent = fmtTime(player.currentTime);
-    durTime.textContent = fmtTime(player.duration);
-  }
-});
-seek.addEventListener('input', ()=> { if(player.duration) player.currentTime = (seek.value/100) * player.duration; });
+player.addEventListener('timeupdate', ()=> { if(player.duration){ seek.value = (player.currentTime/player.duration)*100; curTime.textContent = fmt(player.currentTime); durTime.textContent = fmt(player.duration); }});
+seek.addEventListener('input', ()=> { if(player.duration) player.currentTime = (seek.value/100)*player.duration; });
 
 playBtn.addEventListener('click', ()=> {
   if(!player.src && tracks.length) playIndex(0);
@@ -248,93 +210,135 @@ playBtn.addEventListener('click', ()=> {
   else { player.pause(); playBtn.textContent='▶'; miniPlay.textContent='▶'; }
 });
 prevBtn.addEventListener('click', playPrev);
-nextBtn.addEventListener('click', ()=> { if(current < tracks.length -1) playIndex(current+1); else playIndex(0); });
+nextBtn.addEventListener('click', ()=> { if(current < tracks.length-1) playIndex(current+1); else playIndex(0); });
 
 mini.addEventListener('click', ()=> document.body.classList.toggle('show-full'));
 miniPrev.addEventListener('click', e=>{ e.stopPropagation(); playPrev(); });
 miniNext.addEventListener('click', e=>{ e.stopPropagation(); playNext(); });
 miniPlay.addEventListener('click', e=>{ e.stopPropagation(); playBtn.click(); });
 
-shuffleBtn.addEventListener('click', ()=> { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); });
-repeatBtn.addEventListener('click', ()=> { isRepeat = !isRepeat; repeatBtn.classList.toggle('active', isRepeat); });
-
 filterInput.addEventListener('input', ()=> render(filterInput.value));
+window.addEventListener('keydown', e=> { if(e.code==='Space'){ e.preventDefault(); playBtn.click(); } if(e.code==='ArrowRight') nextBtn.click(); if(e.code==='ArrowLeft') prevBtn.click(); });
 
-// Local folder choose / drag & drop
-dirPicker.addEventListener('change', e => {
-  const files = Array.from(e.target.files || []);
-  loadLocalFiles(files);
-});
+// LOCAL fallback: choose folder / drag drop
+dirPicker.addEventListener('change', e => { const files = Array.from(e.target.files || []); loadLocal(files); });
 window.addEventListener('dragover', e=> e.preventDefault());
-window.addEventListener('drop', e=> { e.preventDefault(); const files = Array.from((e.dataTransfer && e.dataTransfer.files) || []); loadLocalFiles(files); });
+window.addEventListener('drop', e=> { e.preventDefault(); const files = Array.from((e.dataTransfer && e.dataTransfer.files) || []); loadLocal(files); });
 
-function loadLocalFiles(files){
-  const audio = files.filter(f => AUDIO_RE.test(f.name));
+function loadLocal(files){
+  const audio = files.filter(f => AUDIO_EXT.test(f.name));
   audio.sort((a,b)=> a.name.localeCompare(b.name, undefined, {numeric:true}));
-  // revoke previous blob urls
   tracks.forEach(t=>{ if(t._blob) URL.revokeObjectURL(t.url); });
-  tracks = audio.map(f => ({ name: f.name.replace(AUDIO_RE,''), url: URL.createObjectURL(f), artist: DEFAULT_ARTIST, source: 'local', _blob: true }));
+  tracks = audio.map(f=>({ name: f.name.replace(AUDIO_EXT,''), url: URL.createObjectURL(f), artist: DEFAULT_ARTIST, source:'local', _blob:true }));
   render('');
   if(tracks.length) playIndex(0);
 }
 
-// GitHub loading (public repo)
-async function loadFromGitHub(owner, repo, path=''){
-  // normalize
-  owner = owner.trim(); repo = repo.trim(); path = path.trim();
-  if(!owner || !repo) { alert('Enter GitHub owner and repo'); return; }
-  // try GitHub Contents API: GET /repos/{owner}/{repo}/contents/{path}
-  const api = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}`;
+// --------------- Auto-detect methods ---------------
+
+// Attempt 1: list.json located in same folder
+async function tryListJson(){
   try{
-    const resp = await fetch(api);
-    if(!resp.ok){ throw new Error('GitHub API error: ' + resp.status); }
-    const json = await resp.json();
-    // json may be an array (folder) or an object (single file)
-    let files = Array.isArray(json) ? json : [json];
-    // filter mp3s and build tracks using download_url
-    const audioFiles = files.filter(f => f && f.name && AUDIO_RE.test(f.name) && f.download_url);
-    // sort by name
-    audioFiles.sort((a,b)=> a.name.localeCompare(b.name, undefined, {numeric:true}));
-    tracks = audioFiles.map(f => ({ name: f.name.replace(AUDIO_RE,''), url: f.download_url, artist: DEFAULT_ARTIST, source: 'github' }));
-    render('');
-    if(tracks.length) playIndex(0);
-    else alert('No audio files found in that repo/path.');
-  }catch(err){
-    console.error(err);
-    alert('Failed to load from GitHub: ' + err.message + '\nMake sure the repo is public and owner/repo/path are correct.');
-  }
+    const r = await fetch('./list.json', {cache:'no-store'});
+    if(!r.ok) return false;
+    const arr = await r.json();
+    if(!Array.isArray(arr) || arr.length===0) return false;
+    tracks = arr.filter(n => AUDIO_EXT.test(n)).map(n => ({ name: decodeURIComponent(n).replace(AUDIO_EXT,''), url: encodeURI(n), artist: DEFAULT_ARTIST, source:'listjson' }));
+    render(''); if(tracks.length) playIndex(0);
+    setNotice('Loaded songs from list.json');
+    return true;
+  }catch(e){ return false; }
 }
 
-loadGhBtn.addEventListener('click', ()=> loadFromGitHub(ghOwner.value, ghRepo.value, ghPath.value));
-
-// Try auto-detect when hosted on GitHub Pages (best-effort):
-// If the page is loaded from github.io, attempt to infer owner/repo from hostname or meta and load files automatically.
-window.addEventListener('load', ()=>{
-  // If served via github pages domain like user.github.io or repo.github.io
-  const host = location.hostname;
-  // pattern: owner.github.io  or owner.github.io (user/organization site) OR owner.github.io/repo (project site)
-  if(host.endsWith('github.io')){
-    // try to parse owner/repo from pathname if possible
-    // pathname like /repo/ or / (user site). If user site, repo is owner.github.io and files are in root.
-    // We cannot reliably infer repo for user pages; keep it manual but offer auto for common case: owner.github.io/repo
-    const parts = location.pathname.replace(/^\/|\/$/g,'').split('/');
-    if(parts.length >= 1 && parts[0]){
-      // prompt-less: do nothing automatically; user can press Load from GitHub which is simple and safe.
-      console.info('Hosting on GitHub Pages detected — use the "Load from GitHub" inputs to point to repo/folder.');
+// Attempt 2: GitHub API if on github.io — infer owner/repo/path
+async function tryGitHubApi(){
+  try{
+    if(!location.hostname.endsWith('github.io')) return false;
+    // infer owner and repo
+    const host = location.hostname; // e.g. owner.github.io
+    const owner = host.split('.github.io')[0];
+    // pathname like /repo/path/to/folder/ or / (user site)
+    const pathParts = location.pathname.replace(/^\/|\/$/g,'').split('/').filter(Boolean);
+    let repo = owner + '.github.io';
+    let apiPath = ''; // folder inside repo
+    if(pathParts.length > 0){
+      // common case for project page: owner.github.io/repo/...
+      repo = pathParts[0];
+      apiPath = pathParts.slice(1).join('/'); // if index.html is in repo root, apiPath will be ''
     }
+    // If index.html sits in repo root, ensure apiPath is '.' or empty
+    const apiTarget = apiPath || '';
+    const apiUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(apiTarget)}`;
+    const resp = await fetch(apiUrl);
+    if(!resp.ok) return false;
+    const json = await resp.json();
+    const items = Array.isArray(json) ? json : [json];
+    const aud = items.filter(i => i && i.name && i.download_url && AUDIO_EXT.test(i.name));
+    if(aud.length===0) return false;
+    aud.sort((a,b)=> a.name.localeCompare(b.name, undefined, {numeric:true}));
+    tracks = aud.map(f => ({ name: f.name.replace(AUDIO_EXT,''), url: f.download_url, artist: DEFAULT_ARTIST, source:'github' }));
+    render(''); if(tracks.length) playIndex(0);
+    setNotice('Loaded songs from GitHub repository (inferred).');
+    return true;
+  }catch(e){ return false; }
+}
+
+// Attempt 3: parse directory listing HTML from fetch('./')
+async function tryDirHtml(){
+  try{
+    const resp = await fetch('./', {cache:'no-store'});
+    if(!resp.ok) return false;
+    const text = await resp.text();
+    const doc = new DOMParser().parseFromString(text, 'text/html');
+    const anchors = Array.from(doc.getElementsByTagName('a'));
+    const links = anchors.map(a => a.getAttribute('href') || '').filter(h => AUDIO_EXT.test(h));
+    if(links.length===0) return false;
+    // normalize and dedupe
+    const abs = Array.from(new Set(links)).sort();
+    tracks = abs.map(h => ({
+      name: decodeURIComponent(h.split('/').pop().replace(AUDIO_EXT,'')),
+      url: h,
+      artist: DEFAULT_ARTIST,
+      source:'server'
+    }));
+    render(''); if(tracks.length) playIndex(0);
+    setNotice('Loaded songs from server directory listing.');
+    return true;
+  }catch(e){ return false; }
+}
+
+// Master auto-detect
+async function autodetect(){
+  setNotice('Looking for mp3 files in this folder...');
+  let ok = await tryListJson();
+  if(ok) return;
+  ok = await tryGitHubApi();
+  if(ok) return;
+  ok = await tryDirHtml();
+  if(ok) return;
+  // all failed
+  setNotice('No automatic mp3 list found in this folder. If you hosted on GitHub Pages, ensure the mp3s are in the same folder and the site is public. Otherwise use Choose folder (local).');
+}
+
+window.addEventListener('load', ()=> {
+  // only attempt autodetect when served over HTTP(S) or on github pages hostname
+  if(location.protocol === 'file:'){
+    setNotice('Opened locally (file://). Automatic loading from folder is blocked by browser security. Use a hosted URL (GitHub Pages) or click "Choose folder".');
+  } else {
+    autodetect();
   }
 });
 
-// Media Session handlers for lock-screen controls
+// cleanup object URLs
+window.addEventListener('beforeunload', ()=> { tracks.forEach(t=>{ if(t._blob) URL.revokeObjectURL(t.url); }); });
+
+// Media Session (lock screen) handlers
 if('mediaSession' in navigator){
   navigator.mediaSession.setActionHandler('play', ()=>{ player.play(); playBtn.textContent='⏸'; miniPlay.textContent='⏸'; });
   navigator.mediaSession.setActionHandler('pause', ()=>{ player.pause(); playBtn.textContent='▶'; miniPlay.textContent='▶'; });
   navigator.mediaSession.setActionHandler('previoustrack', ()=>{ playPrev(); });
   navigator.mediaSession.setActionHandler('nexttrack', ()=>{ playNext(); });
 }
-
-// Keyboard shortcuts
-window.addEventListener('keydown', e=>{ if(e.code==='Space'){ e.preventDefault(); playBtn.click(); } if(e.code==='ArrowRight') nextBtn.click(); if(e.code==='ArrowLeft') prevBtn.click(); });
 </script>
 </body>
 </html>
