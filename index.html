@@ -1,0 +1,345 @@
+<!--
+Dark MP3 Player (single-file). Place this `index.html` inside the same folder as your songs and serve it with a static server (recommended) or open directly and use Choose folder.
+
+Features:
+ - Auto-detect audio files in same folder when served (parses directory listing HTML).
+ - Mini bottom player bar that shows while browsing; clicking expands full player.
+ - Artist fixed to: Siva Manihandan
+ - Autoplay next, shuffle, repeat, play-all, Media Session, wake lock, keyboard shortcuts
+ - Choose folder or drag & drop files when running locally without a server.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dark MP3 Player — Siva Manihandan</title>
+  <meta name="description" content="Dark local MP3 player. Artist: Siva Manihandan">
+  <style>
+    :root{--bg:#0f1115;--panel:#14171b;--muted:#9aa4b2;--accent:#1db954;--glass:rgba(255,255,255,0.03);--text:#e6eef3}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;color:var(--text);background:linear-gradient(180deg,#071018,#0b0f13)}
+
+    /* App container (hidden when collapsed to bottom) */
+    .app-wrap{display:flex;height:100vh;gap:20px;padding:20px;transition:transform .28s ease,opacity .28s ease}
+    .left{width:340px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:18px;padding:18px;display:flex;flex-direction:column}
+    .cover{height:300px;border-radius:12px;background:linear-gradient(180deg,#1b1f24,#0f1115);display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .cover img{width:100%;height:100%;object-fit:cover;filter:brightness(.92)}
+    .meta{margin-top:12px}
+    .title{font-size:18px;font-weight:700}
+    .artist{color:var(--muted);font-size:13px;margin-top:6px}
+    .controls{display:flex;align-items:center;gap:10px;margin-top:14px}
+    .btn{background:var(--glass);border:none;padding:10px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--text)}
+    .btn.play{width:56px;height:56px;border-radius:12px;background:var(--accent);color:#071018;font-weight:700}
+    .progress{margin-top:14px}
+    .progress input[type=range]{width:100%}
+    .time-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
+    .right{flex:1;display:flex;flex-direction:column}
+    .toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .search{background:var(--panel);padding:10px;border-radius:12px;display:flex;gap:10px;align-items:center}
+    .search input{background:transparent;border:none;outline:none;color:var(--text);width:260px}
+    .playlist{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border-radius:12px;padding:10px;overflow:auto;flex:1}
+    .track{display:grid;grid-template-columns:40px 1fr 90px;align-items:center;padding:8px;border-radius:10px;gap:12px;cursor:pointer}
+    .track:hover{background:rgba(255,255,255,0.02)}
+    .track.active{background:linear-gradient(90deg, rgba(29,185,84,0.12), rgba(29,185,84,0.04));}
+    .track .num{opacity:.7;text-align:center}
+    .track .name{font-weight:600}
+    .track .sub{font-size:12px;color:var(--muted)}
+    .bottom-bar{display:flex;align-items:center;gap:12px;margin-top:12px}
+    .chip{background:var(--panel);padding:8px 12px;border-radius:999px;font-size:13px}
+    .hint{color:var(--muted);font-size:13px}
+    .tog{display:inline-flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02)}
+
+    /* Mini player bar at bottom */
+    .mini-player{position:fixed;left:12px;right:12px;bottom:12px;height:68px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:8px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 30px rgba(0,0,0,0.6);cursor:pointer}
+    .mini-cover{width:52px;height:52px;border-radius:8px;overflow:hidden}
+    .mini-info{flex:1;min-width:0}
+    .mini-title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mini-artist{font-size:12px;color:var(--muted)}
+    .mini-controls{display:flex;gap:8px;align-items:center}
+    .mini-controls .btn{padding:8px}
+
+    /* Collapsed state (hide main app) */
+    .collapsed .app-wrap{transform:translateY(40px);opacity:0;pointer-events:none}
+
+    /* Expanded / full-screen when mini clicked */
+    .expanded .app-wrap{transform:none;opacity:1}
+
+    @media(max-width:900px){.app-wrap{flex-direction:column;padding:12px}.left{width:100%}.search input{width:120px}}
+  </style>
+</head>
+<body class="collapsed"> <!-- start collapsed; mini player visible -->
+
+  <div class="app-wrap">
+    <div class="left">
+      <div class="cover" id="cover">
+        <img id="coverImg" alt="cover" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='800'><rect width='100%' height='100%' fill='%230b0f13'/><text x='50%' y='50%' font-size='48' fill='%231db954' dominant-baseline='middle' text-anchor='middle'>Siva Manihandan</text></svg>">
+      </div>
+
+      <div class="meta">
+        <div class="title" id="trackTitle">No track loaded</div>
+        <div class="artist">Siva Manihandan</div>
+      </div>
+
+      <div class="controls">
+        <button class="btn" id="prevBtn" title="Previous">⏮</button>
+        <button class="btn play" id="playBtn" title="Play/Pause">▶</button>
+        <button class="btn" id="nextBtn" title="Next">⏭</button>
+        <div style="flex:1"></div>
+        <div class="chip" id="count">0 tracks</div>
+      </div>
+
+      <div class="progress">
+        <input type="range" id="seek" min="0" max="100" value="0">
+        <div class="time-row"><span id="curTime">0:00</span><span id="durTime">0:00</span></div>
+      </div>
+
+      <div class="bottom-bar">
+        <div class="file-input">
+          <label class="btn" for="dirPicker">Choose folder</label>
+          <input type="file" id="dirPicker" webkitdirectory directory multiple style="display:none">
+          <div class="hint">or drag & drop files onto the page</div>
+        </div>
+        <div style="flex:1"></div>
+        <div class="chip">Volume
+          <input id="vol" type="range" min="0" max="1" step="0.01" value="0.9" style="width:110px;margin-left:8px">
+        </div>
+      </div>
+
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <label class="tog" title="Play all tracks ignoring the search filter"><input type="checkbox" id="playAll" style="transform:scale(0.9)"> Play All</label>
+        <label class="tog" title="Keep screen awake while playing (requires browser support)"><input type="checkbox" id="wakeLockToggle" style="transform:scale(0.9)"> Wake Lock</label>
+        <label class="tog" title="Autoplay next track when current ends"><input type="checkbox" id="autoplay" checked style="transform:scale(0.9)"> Autoplay Next</label>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="toolbar">
+        <div class="search">🔎<input id="filter" placeholder="Search tracks..."></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="shuffleBtn" title="Shuffle">🔀</button>
+          <button class="btn" id="repeatBtn" title="Repeat">🔁</button>
+        </div>
+      </div>
+
+      <div class="playlist" id="playlist"></div>
+    </div>
+  </div>
+
+  <!-- Mini player bar -->
+  <div class="mini-player" id="miniPlayer" title="Click to open player">
+    <div class="mini-cover"><img id="miniCoverImg" src="" alt="cover" style="width:52px;height:52px;object-fit:cover"></div>
+    <div class="mini-info">
+      <div class="mini-title" id="miniTitle">No track</div>
+      <div class="mini-artist">Siva Manihandan</div>
+    </div>
+    <div class="mini-controls">
+      <button class="btn" id="miniPrev">⏮</button>
+      <button class="btn play" id="miniPlay">▶</button>
+      <button class="btn" id="miniNext">⏭</button>
+    </div>
+  </div>
+
+  <audio id="player" preload="metadata"></audio>
+
+  <script>
+    // CONFIG
+    const DEFAULT_ARTIST = 'Siva Manihandan';
+    const SETTINGS_KEY = 'dark_mp3_player_settings_v1';
+
+    // DOM
+    const body = document.body;
+    const appWrap = document.querySelector('.app-wrap');
+    const player = document.getElementById('player');
+    const playlistEl = document.getElementById('playlist');
+    const playBtn = document.getElementById('playBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const seek = document.getElementById('seek');
+    const curTime = document.getElementById('curTime');
+    const durTime = document.getElementById('durTime');
+    const countEl = document.getElementById('count');
+    const dirPicker = document.getElementById('dirPicker');
+    const filter = document.getElementById('filter');
+    const titleEl = document.getElementById('trackTitle');
+    const vol = document.getElementById('vol');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const repeatBtn = document.getElementById('repeatBtn');
+    const autoplayCheckbox = document.getElementById('autoplay');
+    const playAllCheckbox = document.getElementById('playAll');
+    const wakeLockToggle = document.getElementById('wakeLockToggle');
+
+    // Mini controls
+    const mini = document.getElementById('miniPlayer');
+    const miniTitle = document.getElementById('miniTitle');
+    const miniPlay = document.getElementById('miniPlay');
+    const miniPrev = document.getElementById('miniPrev');
+    const miniNext = document.getElementById('miniNext');
+    const miniCoverImg = document.getElementById('miniCoverImg');
+
+    // STATE
+    let tracks = []; // {name, url, artist, size, source}
+    let current = 0;
+    let isShuffle = false;
+    let isRepeat = false;
+    let wakeLock = null;
+
+    // Load settings
+    function loadSettings(){
+      try{
+        const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+        if(s.volume!==undefined) vol.value = s.volume;
+        if(s.shuffle) { isShuffle = s.shuffle; shuffleBtn.classList.toggle('active', isShuffle); }
+        if(s.repeat) { isRepeat = s.repeat; repeatBtn.classList.toggle('active', isRepeat); }
+        if(s.autoplay!==undefined) autoplayCheckbox.checked = s.autoplay;
+        if(s.playAll!==undefined) playAllCheckbox.checked = s.playAll;
+        if(s.wakeLock) wakeLockToggle.checked = true;
+      }catch(e){ console.warn(e) }
+    }
+    loadSettings();
+
+    function saveSettings(){
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+        volume: vol.value, shuffle: isShuffle, repeat: isRepeat,
+        autoplay: autoplayCheckbox.checked, playAll: playAllCheckbox.checked
+      }));
+    }
+
+    // Volume
+    vol.addEventListener('input', ()=> { player.volume = vol.value; saveSettings(); });
+    player.volume = vol.value;
+
+    // Time formatting
+    function formatTime(s){ if(isNaN(s)) return '0:00'; const m=Math.floor(s/60); const sec=Math.floor(s%60).toString().padStart(2,'0'); return `${m}:${sec}`; }
+
+    // Render playlist
+    function renderPlaylist(filterText=''){
+      playlistEl.innerHTML = '';
+      const source = tracks;
+      const filtered = source.filter(t => (t.name + ' ' + t.artist).toLowerCase().includes(filterText.toLowerCase()));
+      filtered.forEach(t => {
+        const idx = tracks.indexOf(t);
+        const div = document.createElement('div');
+        div.className = 'track' + (idx === current ? ' active' : '');
+        div.dataset.index = idx;
+        div.innerHTML = `<div class="num">${idx+1}</div><div><div class="name">${escapeHtml(t.name)}</div><div class="sub">${escapeHtml(t.artist)}</div></div><div style="text-align:right;font-size:12px;color:var(--muted)">${t.size?t.size+' KB':''}</div>`;
+        div.addEventListener('click', ()=> { playIndex(idx); expand(); });
+        playlistEl.appendChild(div);
+      });
+      countEl.textContent = tracks.length + ' tracks';
+      updateMini();
+    }
+
+    function updateActiveRow(){ document.querySelectorAll('.track').forEach(el=>el.classList.remove('active')); const row = document.querySelector(`.track[data-index='${current}']`); if(row) row.classList.add('active'); }
+
+    function setTrackMeta(t){ titleEl.textContent = t ? t.name : 'No track loaded'; if('mediaSession' in navigator){ try{ navigator.mediaSession.metadata = new MediaMetadata({ title: t.name, artist: t.artist||DEFAULT_ARTIST, album: 'Local Folder', artwork: [{ src: document.getElementById('coverImg').src, sizes: '512x512', type: 'image/png' }] }); }catch(e){console.warn(e)} } }
+
+    function playIndex(i){ if(i<0||i>=tracks.length) return; current = i; player.src = tracks[current].url; player.play().catch(err=>console.warn('Play failed:',err)); playBtn.textContent='⏸'; miniPlay.textContent='⏸'; setTrackMeta(tracks[current]); renderPlaylist(filter.value); updateActiveRow(); updateMini(); saveSettings(); }
+
+    function playNext(){ if(isRepeat){ player.currentTime = 0; player.play(); return; } if(isShuffle){ if(tracks.length===0) return; const next = Math.floor(Math.random()*tracks.length); playIndex(next); return; } if(current < tracks.length - 1){ playIndex(current+1); } else { if(autoplayCheckbox.checked){ if(isRepeat){ playIndex(0); } else { player.pause(); playBtn.textContent='▶'; miniPlay.textContent='▶'; } } else { player.pause(); playBtn.textContent='▶'; miniPlay.textContent='▶'; } } }
+
+    function playPrev(){ if(player.currentTime > 3){ player.currentTime = 0; player.play(); return; } if(current > 0) playIndex(current-1); else playIndex(0); }
+
+    // Events
+    player.addEventListener('ended', ()=>{ if(autoplayCheckbox.checked) playNext(); });
+    player.addEventListener('timeupdate', ()=>{ if(player.duration){ seek.value = (player.currentTime / player.duration) * 100; curTime.textContent = formatTime(player.currentTime); durTime.textContent = formatTime(player.duration); } });
+    seek.addEventListener('input', ()=>{ if(player.duration) player.currentTime = (seek.value/100) * player.duration; });
+
+    playBtn.addEventListener('click', ()=>{ if(!player.src && tracks.length){ playIndex(0); expand(); return; } if(player.paused){ player.play(); playBtn.textContent='⏸'; miniPlay.textContent='⏸'; } else { player.pause(); playBtn.textContent='▶'; miniPlay.textContent='▶'; } });
+    prevBtn.addEventListener('click', ()=>{ playPrev(); });
+    nextBtn.addEventListener('click', ()=>{ if(current < tracks.length -1) playIndex(current+1); else if(tracks.length) playIndex(0); });
+
+    miniPrev.addEventListener('click',(e)=>{ e.stopPropagation(); playPrev(); });
+    miniNext.addEventListener('click',(e)=>{ e.stopPropagation(); playNext(); });
+    miniPlay.addEventListener('click',(e)=>{ e.stopPropagation(); playBtn.click(); });
+
+    shuffleBtn.addEventListener('click', ()=>{ isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); saveSettings(); });
+    repeatBtn.addEventListener('click', ()=>{ isRepeat = !isRepeat; repeatBtn.classList.toggle('active', isRepeat); saveSettings(); });
+
+    filter.addEventListener('input', ()=> renderPlaylist(filter.value));
+    autoplayCheckbox.addEventListener('change', saveSettings);
+    playAllCheckbox.addEventListener('change', ()=>{ renderPlaylist(filter.value); saveSettings(); });
+
+    // Folder picker & drag & drop
+    dirPicker.addEventListener('change', (e)=>{ const files = Array.from(e.target.files || []); processPickedFiles(files); });
+    window.addEventListener('dragover', e=> e.preventDefault());
+    window.addEventListener('drop', e=>{ e.preventDefault(); const files = Array.from((e.dataTransfer && e.dataTransfer.files) || []); processPickedFiles(files); });
+
+    function processPickedFiles(files){ const audioFiles = files.filter(f => f.name.match(/\.(mp3|m4a|wav|ogg|flac)$/i)); audioFiles.sort((a,b)=> a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'})); tracks.forEach(t=>{ if(t._blob) URL.revokeObjectURL(t.url); }); tracks = audioFiles.map(f=>({ name: f.name.replace(/\.(mp3|m4a|wav|ogg|flac)$/i,''), url: URL.createObjectURL(f), artist: DEFAULT_ARTIST, size: Math.round(f.size/1024), _blob:true, source: 'local' })); renderPlaylist(filter.value); if(tracks.length) playIndex(0); }
+
+    // Auto-detect files when served from static server
+    async function tryFetchListing(){
+      try{
+        const baseUrl = location.href.split('#')[0].split('?')[0];
+        const urlsToTry = [baseUrl, new URL('.', baseUrl).href];
+        let found = false;
+        for(const u of urlsToTry){
+          try{
+            const resp = await fetch(u, { method: 'GET' });
+            if(!resp.ok) continue;
+            const text = await resp.text();
+            const doc = new DOMParser().parseFromString(text, 'text/html');
+            const anchors = Array.from(doc.getElementsByTagName('a'));
+            const audioLinks = anchors.map(a => a.getAttribute('href')).filter(Boolean).filter(h => h.match(/\.(mp3|m4a|wav|ogg|flac)$/i));
+            if(audioLinks.length){
+              const abs = audioLinks.map(h => new URL(h, u).href);
+              const unique = Array.from(new Set(abs)).sort();
+              tracks.forEach(t=>{ if(t._blob) URL.revokeObjectURL(t.url); });
+              tracks = unique.map(url => {
+                const name = decodeURIComponent(url.split('/').pop()).replace(/\.(mp3|m4a|wav|ogg|flac)$/i,'');
+                return { name, url, artist: DEFAULT_ARTIST, size: null, source: 'server' };
+              });
+              renderPlaylist('');
+              if(tracks.length) playIndex(0);
+              found = true;
+              break;
+            }
+          }catch(e){ /* ignore and try next */ }
+        }
+        if(!found) console.info('No server audio files auto-detected. Use Choose folder or drag & drop.');
+      }catch(e){ console.warn('Auto-detect failed', e); }
+    }
+
+    // Try to auto-detect on load
+    window.addEventListener('load', ()=>{ tryFetchListing(); });
+
+    // MediaSession handlers
+    if('mediaSession' in navigator){
+      navigator.mediaSession.setActionHandler('play', ()=>{ player.play(); playBtn.textContent='⏸'; miniPlay.textContent='⏸'; });
+      navigator.mediaSession.setActionHandler('pause', ()=>{ player.pause(); playBtn.textContent='▶'; miniPlay.textContent='▶'; });
+      navigator.mediaSession.setActionHandler('previoustrack', ()=>{ playPrev(); });
+      navigator.mediaSession.setActionHandler('nexttrack', ()=>{ playNext(); });
+    }
+
+    // Wake lock
+    async function requestWakeLock(){ try{ if('wakeLock' in navigator){ wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', ()=>{ wakeLock=null; }); } }catch(e){ console.warn('WakeLock failed', e); } }
+    async function releaseWakeLock(){ try{ if(wakeLock) await wakeLock.release(); wakeLock = null; }catch(e){} }
+    wakeLockToggle.addEventListener('change', async ()=>{ if(wakeLockToggle.checked) await requestWakeLock(); else await releaseWakeLock(); });
+    document.addEventListener('visibilitychange', async ()=>{ if(document.visibilityState==='visible' && wakeLockToggle.checked) await requestWakeLock(); });
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', e=>{ if(e.code==='Space'){ e.preventDefault(); playBtn.click(); } if(e.code==='ArrowRight') nextBtn.click(); if(e.code==='ArrowLeft') prevBtn.click(); });
+
+    // Mini player and expand/collapse behavior
+    function updateMini(){ const t = tracks[current]; miniTitle.textContent = t ? t.name : 'No track'; miniCoverImg.src = document.getElementById('coverImg').src; miniPlay.textContent = player.paused ? '▶' : '⏸'; }
+
+    // clicking the mini opens full player
+    mini.addEventListener('click', ()=>{ expand(); });
+    function expand(){ body.classList.remove('collapsed'); body.classList.add('expanded'); }
+    function collapse(){ body.classList.add('collapsed'); body.classList.remove('expanded'); }
+
+    // click outside to collapse
+    document.addEventListener('click', (e)=>{ const inside = e.target.closest('.app-wrap') || e.target.closest('.mini-player'); if(!inside) collapse(); });
+
+    // expose small debug
+    window.__mp = { tracks, playIndex: i => playIndex(i), playNext, playPrev };
+
+    // helper
+    function escapeHtml(s){ return String(s).replace(/[&<>'\"`]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;','`':'&#96;'}[c])); }
+
+    // cleanup object URLs on unload
+    window.addEventListener('beforeunload', ()=>{ tracks.forEach(t=>{ if(t._blob) URL.revokeObjectURL(t.url); }); });
+
+  </script>
+</body>
+</html>
