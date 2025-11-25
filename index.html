@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <!-- Strict no-zoom for mobile -->
-<meta name="viewport" content="width=device-width, initial-scale=0.9" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=0.9,user-scalable=no" />
 <meta name="format-detection" content="telephone=no">
 <meta name="HandheldFriendly" content="true">
 <title>MP3 Player — Clean / Spotify-like</title>
@@ -31,25 +31,19 @@
 
 /* Reset */
 *{box-sizing:border-box}
-html,body{width:100%;height:100%;margin:0;background:linear-gradient(180deg,#071318,var(--bg));color:var(--text);font-size:15px}
+html,body{height:100%;margin:0;background:linear-gradient(180deg,#071318,var(--bg));color:var(--text);font-size:15px}
 a{color:inherit;text-decoration:none}
 
 /* Layout container */
-.container {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: var(--page-pad);
-  display: grid;
-  gap: var(--gap);
-  align-items: start;
-  min-height: 100%;
-  grid-template-columns: 1fr; /* default for mobile */
-}
-
-@media (min-width: 920px) {
-  .container {
-    grid-template-columns: 360px 1fr; /* desktop/tablet */
-  }
+.container{
+  max-width:1200px;
+  margin:0 auto;
+  padding:var(--page-pad);
+  display:grid;
+  grid-template-columns:360px 1fr;
+  gap:var(--gap);
+  align-items:start;
+  min-height:100vh;
 }
 
 /* Card base */
@@ -77,27 +71,15 @@ a{color:inherit;text-decoration:none}
   border:1px solid rgba(255,255,255,0.02);
   flex:0 0 auto;
 }
-/* base rules */
 .cover img{
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-
-  /* force no zoom/scale and no transition */
-  transform: none !important;
-  transition: none !important;
-  will-change: auto;              /* avoid promoting to its own layer */
-  backface-visibility: hidden;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center center;
+  display:block;
+  /* remove hover-scale to avoid "zoom" feeling */
 }
 
-/* override any hover or parent-hover rules */
-.cover img:hover,
-.cover:hover img {
-  transform: none !important;
-  transition: none !important;
-}
 /* Meta */
 .track-meta{display:flex;flex-direction:column;gap:6px}
 .title{font-weight:700;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -122,7 +104,7 @@ input[type=range]{width:100%}
 .search input{background:transparent;border:0;color:var(--text);outline:0;width:100%}
 .actions{display:flex;gap:8px;align-items:center}
 .import-btn{background:transparent;border:1px solid rgba(255,255,255,0.03);padding:8px 10px;border-radius:10px;color:var(--text);cursor:pointer}
-.playlist{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border-radius:12px;padding: 10px;overflow:auto;flex:1;box-shadow:inset 0 -30px 60px rgba(0,0,0,0.2)}
+.playlist{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border-radius:12px;padding:10px;overflow:auto;flex:1;box-shadow:inset 0 -30px 60px rgba(0,0,0,0.2)}
 .row{display:grid;grid-template-columns:56px 1fr 70px;gap:12px;align-items:center;padding:10px;border-radius:8px;cursor:pointer;border:1px solid transparent}
 .row + .row{margin-top:8px}
 .row:hover{background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.02)}
@@ -140,13 +122,13 @@ input[type=range]{width:100%}
 .mini .artist{font-size:12px;color:var(--muted)}
 
 /* Responsive adjustments for small screens — compact, no zoom feeling */
-@media (max-width:820px){
-  .container{grid-template-columns:1fr;padding:10px;gap:10px}
+@media (max-width:920px){
+  .container{grid-template-columns:1fr;padding:12px;gap:10px}
   .cover{height:220px}
   .play-btn{width:56px;height:56px}
   .thumb{width:52px;height:52px}
   /* reduce panel padding for mobile so UI fits without zoom */
-  .panel-left,.panel-right{padding: 15px}
+  .panel-left,.panel-right{padding:12px}
 }
 </style>
 </head>
@@ -442,4 +424,4 @@ window.addEventListener('load', async ()=> {
 window.__player = { tracks };
 </script>
 </body>
-  </html>
+            </html>
