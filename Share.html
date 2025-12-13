@@ -10,7 +10,7 @@ body{
     margin:0;
     background:#121212;
     color:#fff;
-    font-family: system-ui, -apple-system;
+    font-family:system-ui,-apple-system;
 }
 
 .app{
@@ -90,7 +90,7 @@ body{
 <div class="app">
     <div class="cover" id="cover">?</div>
 
-    <div class="title" id="title">No song</div>
+    <div class="title" id="title">Loading…</div>
     <div class="artist">sivamanihandan</div>
 
     <div class="row">
@@ -111,15 +111,16 @@ body{
 <audio id="audio" preload="metadata"></audio>
 
 <script>
-// ---------- SONG MAP (LOWERCASE → REAL FILE) ----------
-const SONG_MAP = {
-    "alone.mp3": "Alone.mp3",
-    "nightvibes.mp3": "NightVibes.mp3"
-};
+// ================== CONFIG (CHANGE THIS) ==================
+const GITHUB_USER = "USERNAME";        // e.g. sivamanihandan
+const REPO_NAME   = "REPO";            // repo name
+const BRANCH      = "main";            // usually main
+const SONGS_PATH  = "songs";           // folder name
+// ==========================================================
 
-// ---------- GET URL SONG ----------
+// ---------- URL SONG ----------
 const params = new URLSearchParams(location.search);
-const rawSong = params.get("song")?.toLowerCase();
+const requestedSong = params.get("song")?.toLowerCase();
 
 // ---------- ELEMENTS ----------
 const audio = document.getElementById("audio");
@@ -138,28 +139,49 @@ function fake(min,max){
     return Math.floor(Math.random()*(max-min)+min);
 }
 
-// ---------- RESOLVE SONG ----------
-if(rawSong && SONG_MAP[rawSong]){
-    const realFile = SONG_MAP[rawSong];
-    const name = realFile.replace(".mp3","");
+// ---------- FETCH SONGS FROM GITHUB ----------
+async function loadSongFromGitHub(){
+    if(!requestedSong){
+        title.textContent = "No song in URL";
+        return;
+    }
 
-    title.textContent = name;
-    cover.textContent = name[0].toUpperCase();
-    audio.src = realFile;  // ✅ REAL FILE NAME
+    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${SONGS_PATH}?ref=${BRANCH}`;
+
+    const res = await fetch(apiUrl);
+    const files = await res.json();
+
+    const match = files.find(f =>
+        f.name.toLowerCase() === requestedSong &&
+        f.name.toLowerCase().endsWith(".mp3")
+    );
+
+    if(!match){
+        title.textContent = "Song not found";
+        return;
+    }
+
+    const realName = match.name;
+    const displayName = realName.replace(".mp3","");
+
+    title.textContent = displayName;
+    cover.textContent = displayName.charAt(0).toUpperCase();
     plays.textContent = fake(10000,1000000).toLocaleString()+" plays";
-}else{
-    title.textContent = "Song not found";
+
+    audio.src = match.download_url;
 }
+
+loadSongFromGitHub();
 
 // ---------- PLAY / PAUSE ----------
 playBtn.onclick = async ()=>{
     if(!audio.src) return;
     if(audio.paused){
         await audio.play();
-        playBtn.textContent = "⏸";
+        playBtn.textContent="⏸";
     }else{
         audio.pause();
-        playBtn.textContent = "▶";
+        playBtn.textContent="▶";
     }
 };
 
