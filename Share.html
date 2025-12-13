@@ -10,7 +10,7 @@ body{
     margin:0;
     background:#121212;
     color:#fff;
-    font-family:system-ui, -apple-system, BlinkMacSystemFont;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont;
 }
 
 .app{
@@ -22,8 +22,8 @@ body{
 .cover{
     width:100%;
     aspect-ratio:1/1;
-    border-radius:12px;
-    background:linear-gradient(135deg,#1db954,#0f5);
+    border-radius:14px;
+    background:linear-gradient(135deg,#1db954,#0f9d58);
     display:flex;
     align-items:center;
     justify-content:center;
@@ -46,7 +46,7 @@ body{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-top:18px;
+    margin-top:16px;
 }
 
 .actions span{
@@ -54,9 +54,20 @@ body{
     cursor:pointer;
 }
 
+.plays{
+    color:#b3b3b3;
+    font-size:14px;
+}
+
 .progress{
     width:100%;
     margin-top:18px;
+}
+
+.play-wrap{
+    display:flex;
+    justify-content:center;
+    margin-top:24px;
 }
 
 .play-btn{
@@ -70,6 +81,7 @@ body{
     font-size:26px;
     color:#000;
     cursor:pointer;
+    user-select:none;
 }
 </style>
 </head>
@@ -87,12 +99,12 @@ body{
             <span id="like">🤍</span>
             <span id="share" style="margin-left:16px">🔗</span>
         </div>
-        <div id="plays" style="color:#b3b3b3;font-size:14px"></div>
+        <div class="plays" id="plays"></div>
     </div>
 
     <input type="range" id="progress" class="progress" value="0">
 
-    <div class="row" style="justify-content:center;margin-top:24px">
+    <div class="play-wrap">
         <div class="play-btn" id="play">▶</div>
     </div>
 </div>
@@ -100,9 +112,11 @@ body{
 <audio id="audio" preload="metadata"></audio>
 
 <script>
-const q = new URLSearchParams(location.search);
-const song = q.get("song");
+// ---------- URL SONG ----------
+const params = new URLSearchParams(window.location.search);
+const song = params.get("song");
 
+// ---------- ELEMENTS ----------
 const audio = document.getElementById("audio");
 const playBtn = document.getElementById("play");
 const progress = document.getElementById("progress");
@@ -114,44 +128,58 @@ const plays = document.getElementById("plays");
 
 let liked = false;
 
+// ---------- FAKE NUMBERS ----------
 function fake(min,max){
     return Math.floor(Math.random()*(max-min)+min);
 }
 
+// ---------- LOAD SONG ----------
 if(song){
-    const name = decodeURIComponent(song).replace(".mp3","");
+    const clean = decodeURIComponent(song);
+    const name = clean.replace(".mp3","");
+
     title.textContent = name;
-    cover.textContent = name[0].toUpperCase();
-    audio.src = song;
-    plays.textContent = fake(10_000,1_000_000).toLocaleString()+" plays";
+    cover.textContent = name.charAt(0).toUpperCase();
+    audio.src = clean;              // SAME FOLDER, SAME NAME
+    plays.textContent = fake(10000,1000000).toLocaleString()+" plays";
+}else{
+    title.textContent = "No song in URL";
 }
 
-playBtn.onclick = async ()=>{
-    if(audio.paused){
-        await audio.play();
-        playBtn.textContent="⏸";
-    }else{
-        audio.pause();
-        playBtn.textContent="▶";
+// ---------- PLAY / PAUSE (CLICK ONLY) ----------
+playBtn.onclick = async () => {
+    try{
+        if(audio.paused){
+            await audio.play();     // USER CLICK → ALLOWED
+            playBtn.textContent = "⏸";
+        }else{
+            audio.pause();
+            playBtn.textContent = "▶";
+        }
+    }catch(e){
+        alert("Audio failed to play. Check filename case.");
     }
 };
 
-audio.ontimeupdate = ()=>{
+// ---------- PROGRESS ----------
+audio.addEventListener("timeupdate",()=>{
     progress.max = audio.duration || 0;
     progress.value = audio.currentTime || 0;
-};
+});
 
 progress.oninput = ()=>{
     audio.currentTime = progress.value;
 };
 
+// ---------- LIKE (FAKE) ----------
 like.onclick = ()=>{
-    liked=!liked;
+    liked = !liked;
     like.textContent = liked ? "❤️" : "🤍";
 };
 
+// ---------- SHARE ----------
 share.onclick = ()=>{
-    navigator.clipboard.writeText(location.href);
+    navigator.clipboard.writeText(window.location.href);
     alert("Song link copied!");
 };
 </script>
