@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Now Playing</title>
+<title>MP3 Player</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -12,13 +12,11 @@ body{
     color:#fff;
     font-family:system-ui,-apple-system;
 }
-
 .app{
     max-width:420px;
     margin:auto;
     padding:20px;
 }
-
 .cover{
     width:100%;
     aspect-ratio:1/1;
@@ -30,46 +28,34 @@ body{
     font-size:96px;
     font-weight:700;
 }
-
 .title{
     margin-top:20px;
     font-size:22px;
     font-weight:600;
 }
-
 .artist{
     color:#b3b3b3;
     margin-top:4px;
 }
-
 .row{
     display:flex;
     justify-content:space-between;
     align-items:center;
     margin-top:16px;
 }
-
 .actions span{
     font-size:22px;
     cursor:pointer;
 }
-
-.plays{
-    color:#b3b3b3;
-    font-size:14px;
-}
-
 .progress{
     width:100%;
     margin-top:18px;
 }
-
 .play-wrap{
     display:flex;
     justify-content:center;
     margin-top:24px;
 }
-
 .play-btn{
     width:64px;
     height:64px;
@@ -89,7 +75,6 @@ body{
 
 <div class="app">
     <div class="cover" id="cover">?</div>
-
     <div class="title" id="title">Loading…</div>
     <div class="artist">sivamanihandan</div>
 
@@ -98,7 +83,6 @@ body{
             <span id="like">🤍</span>
             <span id="share" style="margin-left:16px">🔗</span>
         </div>
-        <div class="plays" id="plays"></div>
     </div>
 
     <input type="range" id="progress" class="progress" value="0">
@@ -111,71 +95,51 @@ body{
 <audio id="audio" preload="metadata"></audio>
 
 <script>
-// ================== CONFIG (CHANGE THIS) ==================
-const GITHUB_USER = "USERNAME";        // e.g. sivamanihandan
-const REPO_NAME   = "REPO";            // repo name
-const BRANCH      = "main";            // usually main
-const SONGS_PATH  = "songs";           // folder name
-// ==========================================================
-
-// ---------- URL SONG ----------
 const params = new URLSearchParams(location.search);
-const requestedSong = params.get("song")?.toLowerCase();
+const baseName = params.get("song"); // without .mp3
 
-// ---------- ELEMENTS ----------
 const audio = document.getElementById("audio");
-const playBtn = document.getElementById("play");
-const progress = document.getElementById("progress");
 const title = document.getElementById("title");
 const cover = document.getElementById("cover");
-const like = document.getElementById("like");
-const share = document.getElementById("share");
-const plays = document.getElementById("plays");
+const playBtn = document.getElementById("play");
+const progress = document.getElementById("progress");
 
-let liked = false;
-
-// ---------- FAKE STATS ----------
-function fake(min,max){
-    return Math.floor(Math.random()*(max-min)+min);
+async function tryLoad(name){
+    return new Promise(resolve=>{
+        const test = new Audio(name);
+        test.oncanplaythrough = () => resolve(name);
+        test.onerror = () => resolve(null);
+    });
 }
 
-// ---------- FETCH SONGS FROM GITHUB ----------
-async function loadSongFromGitHub(){
-    if(!requestedSong){
+async function loadSong(){
+    if(!baseName){
         title.textContent = "No song in URL";
         return;
     }
 
-    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${SONGS_PATH}?ref=${BRANCH}`;
+    const candidates = [
+        `${baseName}.mp3`,
+        `${baseName.charAt(0).toUpperCase()+baseName.slice(1)}.mp3`,
+        `${baseName.toUpperCase()}.mp3`
+    ];
 
-    const res = await fetch(apiUrl);
-    const files = await res.json();
-
-    const match = files.find(f =>
-        f.name.toLowerCase() === requestedSong &&
-        f.name.toLowerCase().endsWith(".mp3")
-    );
-
-    if(!match){
-        title.textContent = "Song not found";
-        return;
+    for(const file of candidates){
+        const found = await tryLoad(file);
+        if(found){
+            audio.src = found;
+            title.textContent = found.replace(".mp3","");
+            cover.textContent = title.textContent[0].toUpperCase();
+            return;
+        }
     }
 
-    const realName = match.name;
-    const displayName = realName.replace(".mp3","");
-
-    title.textContent = displayName;
-    cover.textContent = displayName.charAt(0).toUpperCase();
-    plays.textContent = fake(10000,1000000).toLocaleString()+" plays";
-
-    audio.src = match.download_url;
+    title.textContent = "Song not found";
 }
 
-loadSongFromGitHub();
+loadSong();
 
-// ---------- PLAY / PAUSE ----------
 playBtn.onclick = async ()=>{
-    if(!audio.src) return;
     if(audio.paused){
         await audio.play();
         playBtn.textContent="⏸";
@@ -185,7 +149,6 @@ playBtn.onclick = async ()=>{
     }
 };
 
-// ---------- PROGRESS ----------
 audio.ontimeupdate = ()=>{
     progress.max = audio.duration || 0;
     progress.value = audio.currentTime || 0;
@@ -195,16 +158,13 @@ progress.oninput = ()=>{
     audio.currentTime = progress.value;
 };
 
-// ---------- LIKE ----------
-like.onclick = ()=>{
-    liked = !liked;
-    like.textContent = liked ? "❤️" : "🤍";
+document.getElementById("share").onclick = ()=>{
+    navigator.clipboard.writeText(location.href);
+    alert("Link copied!");
 };
 
-// ---------- SHARE ----------
-share.onclick = ()=>{
-    navigator.clipboard.writeText(location.href);
-    alert("Song link copied!");
+document.getElementById("like").onclick = e=>{
+    e.target.textContent = e.target.textContent==="🤍"?"❤️":"🤍";
 };
 </script>
 
