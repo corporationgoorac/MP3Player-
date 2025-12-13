@@ -2,19 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Simple MP3 Player</title>
+<title>Now Playing</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+:root{
+    --green:#1db954;
+    --bg:#121212;
+    --card:#181818;
+    --text:#ffffff;
+    --muted:#b3b3b3;
+}
+
 body{
     margin:0;
-    background:#121212;
-    color:#fff;
-    font-family:system-ui,-apple-system;
+    background:var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,BlinkMacSystemFont;
 }
 
 .app{
-    max-width:400px;
+    max-width:420px;
     margin:auto;
     padding:20px;
 }
@@ -22,43 +30,69 @@ body{
 .cover{
     width:100%;
     aspect-ratio:1/1;
-    border-radius:12px;
-    background:#1db954;
+    border-radius:16px;
+    background:linear-gradient(135deg,#1db954,#0f9d58);
     display:flex;
     align-items:center;
     justify-content:center;
     font-size:96px;
-    font-weight:700;
+    font-weight:800;
+    letter-spacing:2px;
 }
 
 .title{
     margin-top:20px;
-    font-size:22px;
-    font-weight:600;
+    font-size:24px;
+    font-weight:700;
 }
 
 .artist{
-    color:#b3b3b3;
+    color:var(--muted);
     margin-top:4px;
+    font-size:15px;
+}
+
+.meta{
+    margin-top:10px;
+    color:var(--muted);
+    font-size:14px;
+}
+
+.actions{
+    display:flex;
+    align-items:center;
+    gap:20px;
+    margin-top:18px;
+    font-size:22px;
+}
+
+.actions span{
+    cursor:pointer;
 }
 
 .progress{
     width:100%;
-    margin-top:20px;
+    margin-top:22px;
+}
+
+.play-wrap{
+    display:flex;
+    justify-content:center;
+    margin-top:26px;
 }
 
 .play-btn{
-    margin-top:24px;
-    width:64px;
-    height:64px;
+    width:68px;
+    height:68px;
     border-radius:50%;
-    background:#1db954;
+    background:var(--green);
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:26px;
+    font-size:28px;
     color:#000;
     cursor:pointer;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);
 }
 </style>
 </head>
@@ -67,51 +101,119 @@ body{
 
 <div class="app">
     <div class="cover" id="cover">?</div>
-    <div class="title" id="title">No song</div>
-    <div class="artist">sivamanihandan</div>
+
+    <div class="title" id="title">Loading…</div>
+    <div class="artist" id="artist">sivamanihandan</div>
+
+    <div class="meta" id="meta">—</div>
+
+    <div class="actions">
+        <span id="like">🤍</span>
+        <span id="share">🔗</span>
+    </div>
 
     <input type="range" id="progress" class="progress" value="0">
 
-    <div class="play-btn" id="play">▶</div>
+    <div class="play-wrap">
+        <div class="play-btn" id="play">▶</div>
+    </div>
 </div>
 
-<audio id="audio"></audio>
+<audio id="audio" preload="metadata"></audio>
 
 <script>
-const params = new URLSearchParams(window.location.search);
-const song = params.get("song");
+const params = new URLSearchParams(location.search);
+const baseName = params.get("song");
 
 const audio = document.getElementById("audio");
 const title = document.getElementById("title");
 const cover = document.getElementById("cover");
 const playBtn = document.getElementById("play");
 const progress = document.getElementById("progress");
+const meta = document.getElementById("meta");
+const likeBtn = document.getElementById("like");
+const shareBtn = document.getElementById("share");
 
-if(song){
-    audio.src = song;                 // SAME FOLDER
-    title.textContent = song.replace(".mp3","");
-    cover.textContent = title.textContent[0].toUpperCase();
-}else{
-    title.textContent = "No song in URL";
+let liked = false;
+
+async function tryLoad(name){
+    return new Promise(resolve=>{
+        const test = new Audio(name);
+        test.oncanplaythrough = () => resolve(name);
+        test.onerror = () => resolve(null);
+    });
 }
 
+async function loadSong(){
+    if(!baseName){
+        title.textContent = "No song in URL";
+        return;
+    }
+
+    const candidates = [
+        `${baseName}.mp3`,
+        `${baseName.charAt(0).toUpperCase()+baseName.slice(1)}.mp3`,
+        `${baseName.toUpperCase()}.mp3`
+    ];
+
+    for(const file of candidates){
+        const found = await tryLoad(file);
+        if(found){
+            audio.src = found;
+
+            const cleanTitle = found.replace(".mp3","");
+            title.textContent = cleanTitle;
+            cover.textContent = cleanTitle[0].toUpperCase();
+
+            audio.onloadedmetadata = () => {
+                const duration = Math.floor(audio.duration);
+                const likes = duration * 10;
+                const plays = likes * (Math.floor(Math.random()*3)+2);
+
+                meta.textContent =
+                    `${plays.toLocaleString()} plays • ${likes.toLocaleString()} likes`;
+            };
+
+            return;
+        }
+    }
+
+    title.textContent = "Song not found";
+}
+
+loadSong();
+
+// PLAY / PAUSE
 playBtn.onclick = async ()=>{
     if(audio.paused){
         await audio.play();
-        playBtn.textContent = "⏸";
+        playBtn.textContent="⏸";
     }else{
         audio.pause();
-        playBtn.textContent = "▶";
+        playBtn.textContent="▶";
     }
 };
 
-audio.addEventListener("timeupdate",()=>{
+// PROGRESS
+audio.ontimeupdate = ()=>{
     progress.max = audio.duration || 0;
     progress.value = audio.currentTime || 0;
-});
+};
 
 progress.oninput = ()=>{
     audio.currentTime = progress.value;
+};
+
+// LIKE
+likeBtn.onclick = ()=>{
+    liked = !liked;
+    likeBtn.textContent = liked ? "❤️" : "🤍";
+};
+
+// SHARE
+shareBtn.onclick = ()=>{
+    navigator.clipboard.writeText(location.href);
+    alert("Song link copied!");
 };
 </script>
 
