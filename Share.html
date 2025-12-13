@@ -10,7 +10,7 @@ body{
     margin:0;
     background:#121212;
     color:#fff;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont;
+    font-family: system-ui, -apple-system;
 }
 
 .app{
@@ -81,7 +81,6 @@ body{
     font-size:26px;
     color:#000;
     cursor:pointer;
-    user-select:none;
 }
 </style>
 </head>
@@ -112,9 +111,15 @@ body{
 <audio id="audio" preload="metadata"></audio>
 
 <script>
-// ---------- URL SONG ----------
-const params = new URLSearchParams(window.location.search);
-const song = params.get("song");
+// ---------- SONG MAP (LOWERCASE → REAL FILE) ----------
+const SONG_MAP = {
+    "alone.mp3": "Alone.mp3",
+    "nightvibes.mp3": "NightVibes.mp3"
+};
+
+// ---------- GET URL SONG ----------
+const params = new URLSearchParams(location.search);
+const rawSong = params.get("song")?.toLowerCase();
 
 // ---------- ELEMENTS ----------
 const audio = document.getElementById("audio");
@@ -128,50 +133,47 @@ const plays = document.getElementById("plays");
 
 let liked = false;
 
-// ---------- FAKE NUMBERS ----------
+// ---------- FAKE STATS ----------
 function fake(min,max){
     return Math.floor(Math.random()*(max-min)+min);
 }
 
-// ---------- LOAD SONG ----------
-if(song){
-    const clean = decodeURIComponent(song);
-    const name = clean.replace(".mp3","");
+// ---------- RESOLVE SONG ----------
+if(rawSong && SONG_MAP[rawSong]){
+    const realFile = SONG_MAP[rawSong];
+    const name = realFile.replace(".mp3","");
 
     title.textContent = name;
-    cover.textContent = name.charAt(0).toUpperCase();
-    audio.src = clean;              // SAME FOLDER, SAME NAME
+    cover.textContent = name[0].toUpperCase();
+    audio.src = realFile;  // ✅ REAL FILE NAME
     plays.textContent = fake(10000,1000000).toLocaleString()+" plays";
 }else{
-    title.textContent = "No song in URL";
+    title.textContent = "Song not found";
 }
 
-// ---------- PLAY / PAUSE (CLICK ONLY) ----------
-playBtn.onclick = async () => {
-    try{
-        if(audio.paused){
-            await audio.play();     // USER CLICK → ALLOWED
-            playBtn.textContent = "⏸";
-        }else{
-            audio.pause();
-            playBtn.textContent = "▶";
-        }
-    }catch(e){
-        alert("Audio failed to play. Check filename case.");
+// ---------- PLAY / PAUSE ----------
+playBtn.onclick = async ()=>{
+    if(!audio.src) return;
+    if(audio.paused){
+        await audio.play();
+        playBtn.textContent = "⏸";
+    }else{
+        audio.pause();
+        playBtn.textContent = "▶";
     }
 };
 
 // ---------- PROGRESS ----------
-audio.addEventListener("timeupdate",()=>{
+audio.ontimeupdate = ()=>{
     progress.max = audio.duration || 0;
     progress.value = audio.currentTime || 0;
-});
+};
 
 progress.oninput = ()=>{
     audio.currentTime = progress.value;
 };
 
-// ---------- LIKE (FAKE) ----------
+// ---------- LIKE ----------
 like.onclick = ()=>{
     liked = !liked;
     like.textContent = liked ? "❤️" : "🤍";
@@ -179,7 +181,7 @@ like.onclick = ()=>{
 
 // ---------- SHARE ----------
 share.onclick = ()=>{
-    navigator.clipboard.writeText(window.location.href);
+    navigator.clipboard.writeText(location.href);
     alert("Song link copied!");
 };
 </script>
