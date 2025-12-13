@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MP3 Player</title>
+<title>Simple MP3 Player</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -12,51 +12,43 @@ body{
     color:#fff;
     font-family:system-ui,-apple-system;
 }
+
 .app{
-    max-width:420px;
+    max-width:400px;
     margin:auto;
     padding:20px;
 }
+
 .cover{
     width:100%;
     aspect-ratio:1/1;
-    border-radius:14px;
-    background:linear-gradient(135deg,#1db954,#0f9d58);
+    border-radius:12px;
+    background:#1db954;
     display:flex;
     align-items:center;
     justify-content:center;
     font-size:96px;
     font-weight:700;
 }
+
 .title{
     margin-top:20px;
     font-size:22px;
     font-weight:600;
 }
+
 .artist{
     color:#b3b3b3;
     margin-top:4px;
 }
-.row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-top:16px;
-}
-.actions span{
-    font-size:22px;
-    cursor:pointer;
-}
+
 .progress{
     width:100%;
-    margin-top:18px;
+    margin-top:20px;
 }
-.play-wrap{
-    display:flex;
-    justify-content:center;
-    margin-top:24px;
-}
+
 .play-btn{
+    margin-top:24px;
     width:64px;
     height:64px;
     border-radius:50%;
@@ -75,28 +67,19 @@ body{
 
 <div class="app">
     <div class="cover" id="cover">?</div>
-    <div class="title" id="title">Loading…</div>
+    <div class="title" id="title">No song</div>
     <div class="artist">sivamanihandan</div>
-
-    <div class="row">
-        <div class="actions">
-            <span id="like">🤍</span>
-            <span id="share" style="margin-left:16px">🔗</span>
-        </div>
-    </div>
 
     <input type="range" id="progress" class="progress" value="0">
 
-    <div class="play-wrap">
-        <div class="play-btn" id="play">▶</div>
-    </div>
+    <div class="play-btn" id="play">▶</div>
 </div>
 
-<audio id="audio" preload="metadata"></audio>
+<audio id="audio"></audio>
 
 <script>
-const params = new URLSearchParams(location.search);
-const baseName = params.get("song"); // without .mp3
+const params = new URLSearchParams(window.location.search);
+const song = params.get("song");
 
 const audio = document.getElementById("audio");
 const title = document.getElementById("title");
@@ -104,67 +87,31 @@ const cover = document.getElementById("cover");
 const playBtn = document.getElementById("play");
 const progress = document.getElementById("progress");
 
-async function tryLoad(name){
-    return new Promise(resolve=>{
-        const test = new Audio(name);
-        test.oncanplaythrough = () => resolve(name);
-        test.onerror = () => resolve(null);
-    });
+if(song){
+    audio.src = song;                 // SAME FOLDER
+    title.textContent = song.replace(".mp3","");
+    cover.textContent = title.textContent[0].toUpperCase();
+}else{
+    title.textContent = "No song in URL";
 }
-
-async function loadSong(){
-    if(!baseName){
-        title.textContent = "No song in URL";
-        return;
-    }
-
-    const candidates = [
-        `${baseName}.mp3`,
-        `${baseName.charAt(0).toUpperCase()+baseName.slice(1)}.mp3`,
-        `${baseName.toUpperCase()}.mp3`
-    ];
-
-    for(const file of candidates){
-        const found = await tryLoad(file);
-        if(found){
-            audio.src = found;
-            title.textContent = found.replace(".mp3","");
-            cover.textContent = title.textContent[0].toUpperCase();
-            return;
-        }
-    }
-
-    title.textContent = "Song not found";
-}
-
-loadSong();
 
 playBtn.onclick = async ()=>{
     if(audio.paused){
         await audio.play();
-        playBtn.textContent="⏸";
+        playBtn.textContent = "⏸";
     }else{
         audio.pause();
-        playBtn.textContent="▶";
+        playBtn.textContent = "▶";
     }
 };
 
-audio.ontimeupdate = ()=>{
+audio.addEventListener("timeupdate",()=>{
     progress.max = audio.duration || 0;
     progress.value = audio.currentTime || 0;
-};
+});
 
 progress.oninput = ()=>{
     audio.currentTime = progress.value;
-};
-
-document.getElementById("share").onclick = ()=>{
-    navigator.clipboard.writeText(location.href);
-    alert("Link copied!");
-};
-
-document.getElementById("like").onclick = e=>{
-    e.target.textContent = e.target.textContent==="🤍"?"❤️":"🤍";
 };
 </script>
 
