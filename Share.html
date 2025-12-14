@@ -167,8 +167,8 @@ async function loadSong(){
 
             audio.onloadedmetadata = () => {
                 const duration = Math.floor(audio.duration);
-                const likes = duration * 10;
-                const plays = likes * (Math.floor(Math.random()*3)+2);
+                const likes = duration * 30;
+                const plays = likes * 10;
 
                 meta.textContent =
                     `${plays.toLocaleString()} plays • ${likes.toLocaleString()} likes`;
