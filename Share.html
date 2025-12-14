@@ -15,6 +15,9 @@
 }
 
 body{
+      -webkit-user-select: none; /* Safari */
+  -ms-user-select: none;     /* IE 10+ and Edge */
+  user-select: none;       
     margin:0;
     background:var(--bg);
     color:var(--text);
@@ -168,7 +171,7 @@ async function loadSong(){
             audio.onloadedmetadata = () => {
                 const duration = Math.floor(audio.duration);
                 const likes = duration * 30;
-                const plays = likes * 10;
+                const plays = likes * 4;
 
                 meta.textContent =
                     `${plays.toLocaleString()} plays • ${likes.toLocaleString()} likes`;
