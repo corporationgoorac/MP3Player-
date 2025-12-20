@@ -24,10 +24,16 @@ canvas{width:48vw;max-width:220px;aspect-ratio:9/16;border-radius:16px;border:2p
 .panel{display:none}
 .panel.active{display:block}
 
-textarea,input,select,button{width:100%;background:#111;border:1px solid #333;color:#fff;padding:10px;margin-bottom:10px}
+textarea,input,select,button{
+width:100%;background:#111;border:1px solid #333;
+color:#fff;padding:10px;margin-bottom:10px
+}
 textarea{height:64px}
 
-.action-bar{position:sticky;bottom:0;background:#0b0b0b;padding:10px;border-top:1px solid #222}
+.action-bar{
+position:sticky;bottom:0;background:#0b0b0b;
+padding:10px;border-top:1px solid #222
+}
 .status{text-align:center;font-size:13px;color:#9ca3af;margin-top:6px}
 </style>
 </head>
@@ -59,9 +65,13 @@ textarea{height:64px}
 
 <div id="fontP" class="panel">
   <select id="font">
-    <option>Poppins</option><option>Anton</option><option>Bebas Neue</option>
-    <option>Playfair Display</option><option>Oswald</option>
-    <option>Pacifico</option><option>Cinzel</option>
+    <option>Poppins</option>
+    <option>Anton</option>
+    <option>Bebas Neue</option>
+    <option>Playfair Display</option>
+    <option>Oswald</option>
+    <option>Pacifico</option>
+    <option>Cinzel</option>
   </select>
 </div>
 
@@ -71,9 +81,12 @@ textarea{height:64px}
   <input type="number" id="duration" value="17" min="5" max="60">
   <label>End Screen</label>
   <select id="endStyle">
-    <option value="1">White</option><option value="2">Black</option>
-    <option value="3">Blue</option><option value="4">Purple</option>
-    <option value="5">Teal</option><option value="6">Orange</option>
+    <option value="1">White</option>
+    <option value="2">Black</option>
+    <option value="3">Blue</option>
+    <option value="4">Purple</option>
+    <option value="5">Teal</option>
+    <option value="6">Orange</option>
     <option value="7">Red</option>
   </select>
 </div>
@@ -95,165 +108,193 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const timeline = document.getElementById("timeline");
 
-let img=new Image(), audio=null;
-let txt="", font="Poppins", size=60, color="#fff";
-let duration=17, tx=100, ty=160;
-let endStyle=1, typing=false;
-let dragging=false, playing=false, time=0,last=0;
+/* STATE */
+let img = new Image();
+let audio = null;
+let txt = "";
+let font = "Poppins";
+let size = 60;
+let color = "#fff";
+let duration = 17;
+let tx = 100, ty = 160;
+let endStyle = 1;
+let typing = false;
+let typedDone = false;
+
+let dragging = false;
+let playing = false;
+let time = 0, last = 0;
 
 /* INPUTS */
-imgInput.onchange=e=>img.src=URL.createObjectURL(e.target.files[0]);
-audioInput.onchange=e=>audio=new Audio(URL.createObjectURL(e.target.files[0]));
-text.oninput=e=>txt=e.target.value;
-font.onchange=e=>font=e.target.value;
-size.oninput=e=>size=e.target.value;
-color.oninput=e=>color=e.target.value;
-duration.oninput=e=>{
-  duration=+e.target.value;
-  timeline.max=duration;
-};
-endStyle.onchange=e=>endStyle=+e.target.value;
-typeEffect.onchange=e=>typing=e.target.checked;
+imgInput.onchange = e => img.src = URL.createObjectURL(e.target.files[0]);
+audioInput.onchange = e => audio = new Audio(URL.createObjectURL(e.target.files[0]));
+text.oninput = e => { txt = e.target.value; typedDone = false; };
+font.onchange = e => font = e.target.value;
+size.oninput = e => size = +e.target.value;
+color.oninput = e => color = e.target.value;
+duration.oninput = e => { duration = +e.target.value; timeline.max = duration; };
+endStyle.onchange = e => endStyle = +e.target.value;
+typeEffect.onchange = e => { typing = e.target.checked; typedDone = false; };
 
-/* TIMELINE SCRUB */
-timeline.oninput=e=>{
-  time=+e.target.value;
-  draw(time);
-};
+timeline.oninput = e => { time = +e.target.value; draw(time); };
 
-/* PANELS */
+/* PANEL SWITCH */
 function openPanel(id){
-  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+document.getElementById(id).classList.add("active");
 }
 
 /* DRAG TEXT */
-canvas.onpointerdown=()=>dragging=true;
-canvas.onpointerup=()=>dragging=false;
-canvas.onpointermove=e=>{
-  if(!dragging)return;
-  const r=canvas.getBoundingClientRect();
-  tx=(e.clientX-r.left)*(1080/r.width);
-  ty=(e.clientY-r.top)*(1920/r.height);
+canvas.onpointerdown = () => dragging = true;
+canvas.onpointerup = () => dragging = false;
+canvas.onpointermove = e => {
+if(!dragging) return;
+const r = canvas.getBoundingClientRect();
+tx = (e.clientX - r.left) * (1080 / r.width);
+ty = (e.clientY - r.top) * (1920 / r.height);
 };
+
+/* TEXT WRAP */
+function wrap(text,x,y,max,l){
+let words=text.split(" "),line="";
+for(let w of words){
+let test=line+w+" ";
+if(ctx.measureText(test).width>max){
+ctx.fillText(line,x,y);
+line=w+" ";
+y+=l;
+}else line=test;
+}
+ctx.fillText(line,x,y);
+}
 
 /* DRAW */
 function draw(t){
 ctx.clearRect(0,0,1080,1920);
-ctx.globalAlpha=t<1.2?t/1.2:1;
 
-// END SCREEN
-if(t>=duration-3){
-const colors=["#fff","#000","#0f172a","#581c87","#064e3b","#7c2d12","#7f1d1d"];
-ctx.fillStyle=colors[endStyle-1];
+/* FADE IN MAIN */
+let alpha = t < 1.2 ? t/1.2 : 1;
+ctx.globalAlpha = alpha;
+
+/* END SCREEN */
+if(t >= duration - 3){
+const bgColors = ["#ffffff","#000000","#0f172a","#581c87","#064e3b","#7c2d12","#7f1d1d"];
+const textColors = ["#000","#fff","#fff","#fff","#fff","#fff","#fff"];
+const fade = Math.min(1,(t-(duration-3))/1);
+
+ctx.globalAlpha = fade;
+ctx.fillStyle = bgColors[endStyle-1];
 ctx.fillRect(0,0,1080,1920);
-ctx.globalAlpha=1;
-ctx.fillStyle=endStyle===1?"#000":"#fff";
-ctx.font="90px Playfair Display";
-ctx.textAlign="center";
+
+ctx.globalAlpha = fade;
+ctx.fillStyle = textColors[endStyle-1];
+ctx.font = "90px Playfair Display";
+ctx.textAlign = "center";
 ctx.fillText("VoidUpLift",540,960);
+ctx.globalAlpha = 1;
 return;
 }
 
+/* BG */
 ctx.fillStyle="#000";
 ctx.fillRect(0,0,1080,1920);
 
-// IMAGE
+/* IMAGE */
 if(img.width){
-const s=1080/img.width,h=img.height*s,y=(1920-h)/2;
+const s=1080/img.width;
+const h=img.height*s;
+const y=(1920-h)/2;
 ctx.drawImage(img,0,y,1080,h);
 }
 
-// TEXT
-ctx.globalAlpha=1;
-ctx.fillStyle=color;
-ctx.font=size+"px "+font;
+/* TEXT */
+ctx.globalAlpha = 1;
+ctx.fillStyle = color;
+ctx.font = size+"px "+font;
 ctx.textAlign="left";
 
-let displayText=txt;
-if(typing){
-const chars=Math.floor((t*10)% (txt.length+1));
-displayText=txt.slice(0,chars);
+let displayText = txt;
+if(typing && !typedDone){
+const chars = Math.min(txt.length, Math.floor(t*10));
+displayText = txt.slice(0,chars);
+if(chars >= txt.length) typedDone = true;
 }
 
 wrap(displayText,tx,ty,900,size+10);
 }
 
-/* WRAP */
-function wrap(text,x,y,max,l){
-let w=text.split(" "),line="";
-for(let i of w){
-let test=line+i+" ";
-if(ctx.measureText(test).width>max){
-ctx.fillText(line,x,y);
-line=i+" ";
-y+=l
-}else line=test
-}
-ctx.fillText(line,x,y)
-}
-
 /* PLAY */
-playBtn.onclick=()=>{
-playing=!playing;
-playBtn.textContent=playing?"pause":"play_arrow";
-if(audio){audio.currentTime=0;playing?audio.play():audio.pause()}
-if(playing){last=performance.now();requestAnimationFrame(loop)}
+playBtn.onclick = ()=>{
+playing = !playing;
+playBtn.textContent = playing ? "pause" : "play_arrow";
+if(audio){
+audio.currentTime = 0;
+playing ? audio.play() : audio.pause();
+}
+if(playing){
+last = performance.now();
+requestAnimationFrame(loop);
+}
 };
 
 function loop(n){
-if(!playing)return;
-time+=(n-last)/1000;last=n;
-timeline.value=time;
+if(!playing) return;
+time += (n-last)/1000;
+last = n;
+timeline.value = time;
 draw(time);
-if(time>=duration){
-playing=false;
-playBtn.textContent="play_arrow";
-if(audio)audio.pause();
-return
+if(time >= duration){
+playing = false;
+playBtn.textContent = "play_arrow";
+if(audio) audio.pause();
+return;
 }
-requestAnimationFrame(loop)
+requestAnimationFrame(loop);
 }
 
-/* EXPORT (UNCHANGED AUTO DOWNLOAD) */
+/* EXPORT — AUTO DOWNLOAD (UNCHANGED) */
 function exportVideo(){
-exportBtn.disabled=true;
-status.textContent="Recording…";
-time=0;
-if(audio){audio.currentTime=0;audio.play()}
+exportBtn.disabled = true;
+status.textContent = "Recording…";
+time = 0;
+if(audio){ audio.currentTime = 0; audio.play(); }
 
-const stream=canvas.captureStream(30);
+const stream = canvas.captureStream(30);
 if(audio){
-const ctxA=new AudioContext();
-const src=ctxA.createMediaElementSource(audio);
-const dest=ctxA.createMediaStreamDestination();
-src.connect(dest);src.connect(ctxA.destination);
+const ctxA = new AudioContext();
+const src = ctxA.createMediaElementSource(audio);
+const dest = ctxA.createMediaStreamDestination();
+src.connect(dest);
+src.connect(ctxA.destination);
 dest.stream.getTracks().forEach(t=>stream.addTrack(t));
 }
 
-const rec=new MediaRecorder(stream);
-const data=[];
-rec.ondataavailable=e=>data.push(e.data);
+const rec = new MediaRecorder(stream);
+const data = [];
+rec.ondataavailable = e => data.push(e.data);
 rec.start();
 
-const i=setInterval(()=>{
-time+=1/30;
-status.textContent=`Recording… ${(duration-time).toFixed(1)}s left`;
+const i = setInterval(()=>{
+time += 1/30;
+status.textContent = `Recording… ${(duration-time).toFixed(1)}s left`;
 draw(time);
-if(time>=duration){clearInterval(i);rec.stop()}
+if(time >= duration){
+clearInterval(i);
+rec.stop();
+}
 },33);
 
-rec.onstop=()=>{
-const blob=new Blob(data,{type:"video/webm"});
-const a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
-a.download="VoidUpLift_Reel.webm";
+rec.onstop = ()=>{
+const blob = new Blob(data,{type:"video/webm"});
+const a = document.createElement("a");
+a.href = URL.createObjectURL(blob);
+a.download = "VoidUpLift_Reel.webm";
 document.body.appendChild(a);
 a.click();
 a.remove();
-status.textContent="Download started";
-exportBtn.disabled=false
-}
+status.textContent = "Download started";
+exportBtn.disabled = false;
+};
 }
 </script>
 </body>
