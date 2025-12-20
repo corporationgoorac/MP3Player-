@@ -4,24 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ========================================================= -->
-<!--                    APP TITLE                              -->
-<!-- ========================================================= -->
 <title>VoidUpLift Reels Editor</title>
 
-<!-- ========================================================= -->
-<!--                    GOOGLE FONTS                           -->
-<!-- ========================================================= -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Anton&family=Bebas+Neue&family=Playfair+Display&family=Oswald&family=Pacifico&family=Cinzel&display=swap" rel="stylesheet">
 
-<!-- ========================================================= -->
-<!--                    MATERIAL ICONS                         -->
-<!-- ========================================================= -->
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-<!-- ========================================================= -->
-<!--                    GLOBAL STYLES                          -->
-<!-- ========================================================= -->
 <style>
 
 /* ---------- RESET ---------- */
@@ -121,6 +109,13 @@ textarea{
   height:70px;
 }
 
+label{
+  font-size: 12px;
+  color: #9ca3af;
+  display: block;
+  margin-bottom: 4px;
+}
+
 /* ---------- STATUS ---------- */
 .status{
   text-align:center;
@@ -134,19 +129,14 @@ textarea{
 
 <body>
 
-<!-- ========================================================= -->
-<!--                    APP ROOT                               -->
-<!-- ========================================================= -->
 <div class="app">
 
-  <!-- ================= PREVIEW ================= -->
   <div class="preview">
     <canvas id="canvas" width="1080" height="1920"></canvas>
     <span id="playBtn" class="material-icons play">play_arrow</span>
     <input type="range" id="timeline" min="0" max="17" step="0.01">
   </div>
 
-  <!-- ================= ICON BAR ================= -->
   <div class="iconbar">
     <span class="material-icons" onclick="openPanel('textP')">text_fields</span>
     <span class="material-icons" onclick="openPanel('fontP')">font_download</span>
@@ -155,10 +145,8 @@ textarea{
     <span class="material-icons" onclick="exportVideo()">download</span>
   </div>
 
-  <!-- ================= CONTROLS ================= -->
   <div class="controls">
 
-    <!-- -------- TEXT PANEL -------- -->
     <div id="textP" class="panel active">
       <textarea id="text" placeholder="Enter your text here"></textarea>
 
@@ -167,6 +155,10 @@ textarea{
         Typing effect
       </label>
 
+      <label>Typing Speed (characters per sec)</label>
+      <input type="range" id="typingSpeedInput" min="5" max="60" value="15">
+
+      <label>Animation Style</label>
       <select id="textAnim">
         <option value="fade">Fade</option>
         <option value="slideUp">Slide Up</option>
@@ -176,44 +168,41 @@ textarea{
         <option value="blur">Blur In</option>
       </select>
 
-      <input type="range" id="size" min="30" max="120" value="60">
-      <input type="color" id="color" value="#ffffff">
+      <label>Font Size</label>
+      <input type="range" id="sizeInput" min="30" max="150" value="60">
+      
+      <label>Font Color</label>
+      <input type="color" id="colorInput" value="#ffffff">
     </div>
 
-    <!-- -------- FONT PANEL -------- -->
     <div id="fontP" class="panel">
-      <select id="font">
-        <option>Poppins</option>
-        <option>Anton</option>
-        <option>Bebas Neue</option>
-        <option>Playfair Display</option>
-        <option>Oswald</option>
-        <option>Pacifico</option>
-        <option>Cinzel</option>
+      <label>Select Font Style</label>
+      <select id="fontSelect">
+        <option value="Poppins">Poppins</option>
+        <option value="Anton">Anton</option>
+        <option value="Bebas Neue">Bebas Neue</option>
+        <option value="Playfair Display">Playfair Display</option>
+        <option value="Oswald">Oswald</option>
+        <option value="Pacifico">Pacifico</option>
+        <option value="Cinzel">Cinzel</option>
       </select>
     </div>
 
-    <!-- -------- IMAGE PANEL -------- -->
     <div id="imgP" class="panel">
       <input type="file" id="imgInput" accept="image/*">
       <label>Duration (seconds)</label>
-      <input type="number" id="duration" value="17" min="5" max="60">
+      <input type="number" id="durationInput" value="17" min="5" max="60">
     </div>
 
-    <!-- -------- AUDIO PANEL -------- -->
     <div id="audioP" class="panel">
       <input type="file" id="audioInput" accept="audio/*">
     </div>
 
-    <!-- -------- STATUS -------- -->
     <div class="status" id="status">Idle</div>
 
   </div>
 </div>
 
-<!-- ========================================================= -->
-<!--                    SCRIPT SECTION                         -->
-<!-- ========================================================= -->
 <script>
 
 /* ============================================================
@@ -236,9 +225,10 @@ let img = new Image();
 let audio = null;
 
 let txt = "";
-let font = "Poppins";
-let size = 60;
-let color = "#ffffff";
+let activeFont = "Poppins"; // Renamed to avoid ID collision
+let activeSize = 60;        // Renamed to avoid ID collision
+let activeColor = "#ffffff"; // Renamed to avoid ID collision
+let typingSpeed = 15;       // Speed control variable
 
 let duration = 17;
 let tx = 100;
@@ -264,48 +254,57 @@ function liveDraw(){
 }
 
 /* ============================================================
-   INPUT HANDLERS
+   FIXED INPUT HANDLERS
 ============================================================ */
-imgInput.onchange = e=>{
-  img.src = URL.createObjectURL(e.target.files[0]);
-  img.onload = liveDraw;
+document.getElementById("imgInput").onchange = e=>{
+  if(e.target.files[0]) {
+    img.src = URL.createObjectURL(e.target.files[0]);
+    img.onload = liveDraw;
+  }
 };
 
-audioInput.onchange = e=>{
-  audio = new Audio(URL.createObjectURL(e.target.files[0]));
+document.getElementById("audioInput").onchange = e=>{
+  if(e.target.files[0]) {
+    audio = new Audio(URL.createObjectURL(e.target.files[0]));
+  }
 };
 
-text.oninput = e=>{
+document.getElementById("text").oninput = e=>{
   txt = e.target.value;
   liveDraw();
 };
 
-font.onchange = e=>{
-  font = e.target.value;
+document.getElementById("fontSelect").onchange = e=>{
+  activeFont = e.target.value;
   liveDraw();
 };
 
-size.oninput = e=>{
-  size = +e.target.value;
+document.getElementById("sizeInput").oninput = e=>{
+  activeSize = parseInt(e.target.value);
   liveDraw();
 };
 
-color.oninput = e=>{
-  color = e.target.value;
+document.getElementById("colorInput").oninput = e=>{
+  activeColor = e.target.value;
   liveDraw();
 };
 
-textAnim.onchange = e=>{
+document.getElementById("typingSpeedInput").oninput = e=>{
+  typingSpeed = parseInt(e.target.value);
+  liveDraw();
+};
+
+document.getElementById("textAnim").onchange = e=>{
   textAnim = e.target.value;
   liveDraw();
 };
 
-typeEffect.onchange = e=>{
+document.getElementById("typeEffect").onchange = e=>{
   typing = e.target.checked;
   liveDraw();
 };
 
-duration.oninput = e=>{
+document.getElementById("durationInput").oninput = e=>{
   duration = +e.target.value;
   timeline.max = duration;
   liveDraw();
@@ -391,46 +390,48 @@ function draw(t){
   if(img.width){
     let s = 1080 / img.width;
     let h = img.height * s;
-    let y = (1920 - h) / 2;
+    let yPos = (1920 - h) / 2;
     ctx.globalAlpha = startAlpha;
-    ctx.drawImage(img,0,y,1080,h);
+    ctx.drawImage(img,0,yPos,1080,h);
   }
 
-  /* ---------- TEXT ---------- */
-  ctx.fillStyle = color;
-  ctx.font = size + "px " + font;
+  /* ---------- FIXED TEXT SETTINGS ---------- */
+  ctx.fillStyle = activeColor;
+  ctx.font = activeSize + "px " + activeFont;
   ctx.textAlign = "left";
   ctx.globalAlpha = startAlpha;
 
+  // Fixed Typing Effect logic using manual substring
   let showText = typing
-    ? txt.slice(0, Math.floor(t * 12))
+    ? txt.substring(0, Math.floor(t * typingSpeed))
     : txt;
 
   let x = tx;
   let y = ty;
 
+  /* ---------- ANIMATIONS ---------- */
   if(textAnim === "slideUp") y += (1-startAlpha)*60;
   if(textAnim === "slideLeft") x -= (1-startAlpha)*60;
 
   if(textAnim === "zoom"){
     ctx.save();
     ctx.translate(x,y);
-    ctx.scale(0.85+startAlpha*0.15,0.85+startAlpha*0.15);
-    wrap(showText,0,0,900,size+10);
+    ctx.scale(0.85+startAlpha*0.15, 0.85+startAlpha*0.15);
+    wrap(showText,0,0,900,activeSize+10);
     ctx.restore();
     return;
   }
 
   if(textAnim === "bounce"){
-    y += Math.sin(startAlpha*Math.PI)*20;
+    y += Math.sin(t * 5) * 15;
   }
 
   if(textAnim === "blur"){
-    ctx.shadowColor = color;
-    ctx.shadowBlur = (1-startAlpha)*20;
+    ctx.shadowColor = activeColor;
+    ctx.shadowBlur = (1-startAlpha)*30;
   }
 
-  wrap(showText,x,y,900,size+10);
+  wrap(showText,x,y,900,activeSize+10);
 
   ctx.shadowBlur = 0;
   ctx.globalAlpha = 1;
@@ -444,8 +445,12 @@ playBtn.onclick = ()=>{
   playBtn.textContent = playing ? "pause" : "play_arrow";
 
   if(audio){
-    audio.currentTime = 0;
-    playing ? audio.play() : audio.pause();
+    if(playing) {
+      audio.currentTime = time;
+      audio.play();
+    } else {
+      audio.pause();
+    }
   }
 
   if(playing){
@@ -471,20 +476,23 @@ function loop(n){
 }
 
 /* ============================================================
-   EXPORT VIDEO
+   FIXED PRECISE EXPORT VIDEO (NO RANDOM SECONDS)
 ============================================================ */
-function exportVideo(){
+async function exportVideo(){
   if(playing) return;
 
   status.textContent = "Recording…";
-  time = 0;
+  
+  const fps = 30;
+  const totalFrames = duration * fps;
+  let currentFrame = 0;
 
   if(audio){
     audio.currentTime = 0;
     audio.play();
   }
 
-  const stream = canvas.captureStream(30);
+  const stream = canvas.captureStream(fps);
 
   if(audio){
     const ac = new AudioContext();
@@ -504,24 +512,31 @@ function exportVideo(){
   recorder.ondataavailable = e=>chunks.push(e.data);
   recorder.start();
 
-  const interval = setInterval(()=>{
-    time += 1/30;
-    draw(time);
-    if(time >= duration){
-      clearInterval(interval);
+  // Controlled frame-by-frame loop for exact timing
+  function renderFrame() {
+    if(currentFrame <= totalFrames) {
+      const exportTime = currentFrame / fps;
+      draw(exportTime);
+      currentFrame++;
+      requestAnimationFrame(renderFrame);
+    } else {
       recorder.stop();
     }
-  },33);
+  }
+
+  renderFrame();
 
   recorder.onstop = ()=>{
+    if(audio) audio.pause();
     const blob = new Blob(chunks,{type:"video/webm"});
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
+    a.href = url;
     a.download = "VoidUpLift_Reel.webm";
     document.body.appendChild(a);
     a.click();
     a.remove();
-    status.textContent = "Download started";
+    status.textContent = "Download complete";
   };
 }
 
