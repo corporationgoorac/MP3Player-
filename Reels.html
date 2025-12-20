@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VoidUpLift Reels Editor</title>
 
-<!-- Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Anton&family=Bebas+Neue&family=Playfair+Display&family=Oswald&family=Pacifico&family=Cinzel&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Anton&family=Bebas+Neue&family=Playfair+Display&family=Oswald&family=Pacifico&family=Cinzel&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <style>
@@ -14,35 +13,20 @@
 body{margin:0;background:#000;color:#fff;font-family:Poppins;height:100vh;overflow:hidden}
 .app{display:flex;flex-direction:column;height:100vh}
 
-/* PREVIEW */
-.preview{display:flex;flex-direction:column;align-items:center;padding:10px 0}
+.preview{display:flex;flex-direction:column;align-items:center;padding:10px}
 canvas{width:48vw;max-width:220px;aspect-ratio:9/16;border-radius:16px;border:2px solid #2a2a2a}
-.play{font-size:34px;color:#e5e7eb;margin-top:8px;cursor:pointer}
+.play{font-size:32px;margin-top:6px;cursor:pointer}
 
-/* ICON BAR */
-.iconbar{
-display:flex;
-justify-content:space-around;
-padding:8px;
-border-top:1px solid #222;
-border-bottom:1px solid #222;
-background:#050505
-}
-.iconbar span{font-size:26px;color:#ccc;cursor:pointer}
-
-/* PANELS */
 .controls{flex:1;background:#050505;overflow-y:auto;padding:10px}
+.iconbar{display:flex;justify-content:space-around;padding:8px;border-top:1px solid #222;border-bottom:1px solid #222}
+.iconbar span{font-size:26px;cursor:pointer}
+
 .panel{display:none}
 .panel.active{display:block}
 
-textarea,input,select,button{
-width:100%;
-background:#111;border:1px solid #333;
-color:#fff;padding:10px;margin-bottom:10px
-}
+textarea,input,select,button{width:100%;background:#111;border:1px solid #333;color:#fff;padding:10px;margin-bottom:10px}
 textarea{height:64px}
 
-/* ACTION BAR */
 .action-bar{position:sticky;bottom:0;background:#0b0b0b;padding:10px;border-top:1px solid #222}
 .status{text-align:center;font-size:13px;color:#9ca3af;margin-top:6px}
 </style>
@@ -54,6 +38,7 @@ textarea{height:64px}
 <div class="preview">
   <canvas id="canvas" width="1080" height="1920"></canvas>
   <span id="playBtn" class="material-icons play">play_arrow</span>
+  <input type="range" id="timeline" min="0" max="17" step="0.01">
 </div>
 
 <div class="iconbar">
@@ -66,39 +51,35 @@ textarea{height:64px}
 <div class="controls">
 
 <div id="textP" class="panel active">
-  <textarea id="text" placeholder="Drag text on reel"></textarea>
+  <textarea id="text" placeholder="Text"></textarea>
+  <label><input type="checkbox" id="typeEffect"> Typing effect</label>
   <input type="range" id="size" min="30" max="120" value="60">
   <input type="color" id="color" value="#ffffff">
 </div>
 
 <div id="fontP" class="panel">
-  <select id="font" style="font-family:Poppins">
-    <option style="font-family:Poppins">Poppins</option>
-    <option style="font-family:Anton">Anton</option>
-    <option style="font-family:Bebas Neue">Bebas Neue</option>
-    <option style="font-family:Playfair Display">Playfair Display</option>
-    <option style="font-family:Oswald">Oswald</option>
-    <option style="font-family:Pacifico">Pacifico</option>
-    <option style="font-family:Cinzel">Cinzel</option>
+  <select id="font">
+    <option>Poppins</option><option>Anton</option><option>Bebas Neue</option>
+    <option>Playfair Display</option><option>Oswald</option>
+    <option>Pacifico</option><option>Cinzel</option>
   </select>
 </div>
 
 <div id="imgP" class="panel">
   <input type="file" id="imgInput" accept="image/*">
+  <label>Duration (seconds)</label>
   <input type="number" id="duration" value="17" min="5" max="60">
+  <label>End Screen</label>
+  <select id="endStyle">
+    <option value="1">White</option><option value="2">Black</option>
+    <option value="3">Blue</option><option value="4">Purple</option>
+    <option value="5">Teal</option><option value="6">Orange</option>
+    <option value="7">Red</option>
+  </select>
 </div>
 
 <div id="audioP" class="panel">
-  <input type="file" accept="audio/*">
-  <select id="endStyle">
-    <option value="1">End Screen 1</option>
-    <option value="2">End Screen 2</option>
-    <option value="3">End Screen 3</option>
-    <option value="4">End Screen 4</option>
-    <option value="5">End Screen 5</option>
-    <option value="6">End Screen 6</option>
-    <option value="7">End Screen 7</option>
-  </select>
+  <input type="file" id="audioInput" accept="audio/*">
 </div>
 
 <div class="action-bar">
@@ -110,89 +91,146 @@ textarea{height:64px}
 </div>
 
 <script>
-const canvas=document.getElementById("canvas"),ctx=canvas.getContext("2d");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const timeline = document.getElementById("timeline");
 
-let img=new Image(),txt="",font="Poppins",size=60,color="#fff";
-let duration=17,tx=100,ty=160,endStyle=1;
-let dragging=false,playing=false,time=0,last=0;
+let img=new Image(), audio=null;
+let txt="", font="Poppins", size=60, color="#fff";
+let duration=17, tx=100, ty=160;
+let endStyle=1, typing=false;
+let dragging=false, playing=false, time=0,last=0;
 
+/* INPUTS */
 imgInput.onchange=e=>img.src=URL.createObjectURL(e.target.files[0]);
+audioInput.onchange=e=>audio=new Audio(URL.createObjectURL(e.target.files[0]));
 text.oninput=e=>txt=e.target.value;
-font.onchange=e=>{font=e.target.value;e.target.style.fontFamily=font};
+font.onchange=e=>font=e.target.value;
 size.oninput=e=>size=e.target.value;
 color.oninput=e=>color=e.target.value;
-duration.oninput=e=>duration=e.target.value;
-endStyle.onchange=e=>endStyle=e.target.value;
+duration.oninput=e=>{
+  duration=+e.target.value;
+  timeline.max=duration;
+};
+endStyle.onchange=e=>endStyle=+e.target.value;
+typeEffect.onchange=e=>typing=e.target.checked;
 
+/* TIMELINE SCRUB */
+timeline.oninput=e=>{
+  time=+e.target.value;
+  draw(time);
+};
+
+/* PANELS */
 function openPanel(id){
-document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
+/* DRAG TEXT */
 canvas.onpointerdown=()=>dragging=true;
 canvas.onpointerup=()=>dragging=false;
 canvas.onpointermove=e=>{
-if(!dragging)return;
-const r=canvas.getBoundingClientRect();
-tx=(e.clientX-r.left)*(1080/r.width);
-ty=(e.clientY-r.top)*(1920/r.height);
+  if(!dragging)return;
+  const r=canvas.getBoundingClientRect();
+  tx=(e.clientX-r.left)*(1080/r.width);
+  ty=(e.clientY-r.top)*(1920/r.height);
 };
 
-function wrap(t,x,y,m,l){
-let w=t.split(" "),line="";
-for(let i of w){
-let test=line+i+" ";
-if(ctx.measureText(test).width>m){ctx.fillText(line,x,y);line=i+" ";y+=l}
-else line=test}
-ctx.fillText(line,x,y)
-}
-
+/* DRAW */
 function draw(t){
 ctx.clearRect(0,0,1080,1920);
 ctx.globalAlpha=t<1.2?t/1.2:1;
 
+// END SCREEN
 if(t>=duration-3){
+const colors=["#fff","#000","#0f172a","#581c87","#064e3b","#7c2d12","#7f1d1d"];
+ctx.fillStyle=colors[endStyle-1];
+ctx.fillRect(0,0,1080,1920);
 ctx.globalAlpha=1;
-if(endStyle%2){ctx.fillStyle="#fff";ctx.fillRect(0,0,1080,1920);ctx.fillStyle="#000"}
-else{ctx.fillStyle="#000";ctx.fillRect(0,0,1080,1920);ctx.fillStyle="#fff"}
+ctx.fillStyle=endStyle===1?"#000":"#fff";
 ctx.font="90px Playfair Display";
 ctx.textAlign="center";
 ctx.fillText("VoidUpLift",540,960);
 return;
 }
 
-ctx.fillStyle="#000";ctx.fillRect(0,0,1080,1920);
+ctx.fillStyle="#000";
+ctx.fillRect(0,0,1080,1920);
+
+// IMAGE
 if(img.width){
 const s=1080/img.width,h=img.height*s,y=(1920-h)/2;
-ctx.drawImage(img,0,y,1080,h)
+ctx.drawImage(img,0,y,1080,h);
 }
 
+// TEXT
 ctx.globalAlpha=1;
 ctx.fillStyle=color;
 ctx.font=size+"px "+font;
 ctx.textAlign="left";
-wrap(txt,tx,ty,900,size+10)
+
+let displayText=txt;
+if(typing){
+const chars=Math.floor((t*10)% (txt.length+1));
+displayText=txt.slice(0,chars);
 }
 
+wrap(displayText,tx,ty,900,size+10);
+}
+
+/* WRAP */
+function wrap(text,x,y,max,l){
+let w=text.split(" "),line="";
+for(let i of w){
+let test=line+i+" ";
+if(ctx.measureText(test).width>max){
+ctx.fillText(line,x,y);
+line=i+" ";
+y+=l
+}else line=test
+}
+ctx.fillText(line,x,y)
+}
+
+/* PLAY */
 playBtn.onclick=()=>{
 playing=!playing;
 playBtn.textContent=playing?"pause":"play_arrow";
+if(audio){audio.currentTime=0;playing?audio.play():audio.pause()}
 if(playing){last=performance.now();requestAnimationFrame(loop)}
 };
 
 function loop(n){
 if(!playing)return;
 time+=(n-last)/1000;last=n;
+timeline.value=time;
 draw(time);
-if(time>=duration){playing=false;playBtn.textContent="play_arrow";return}
+if(time>=duration){
+playing=false;
+playBtn.textContent="play_arrow";
+if(audio)audio.pause();
+return
+}
 requestAnimationFrame(loop)
 }
 
+/* EXPORT (UNCHANGED AUTO DOWNLOAD) */
 function exportVideo(){
 exportBtn.disabled=true;
 status.textContent="Recording…";
 time=0;
+if(audio){audio.currentTime=0;audio.play()}
+
 const stream=canvas.captureStream(30);
+if(audio){
+const ctxA=new AudioContext();
+const src=ctxA.createMediaElementSource(audio);
+const dest=ctxA.createMediaStreamDestination();
+src.connect(dest);src.connect(ctxA.destination);
+dest.stream.getTracks().forEach(t=>stream.addTrack(t));
+}
+
 const rec=new MediaRecorder(stream);
 const data=[];
 rec.ondataavailable=e=>data.push(e.data);
@@ -206,7 +244,6 @@ if(time>=duration){clearInterval(i);rec.stop()}
 },33);
 
 rec.onstop=()=>{
-status.textContent="Finalizing…";
 const blob=new Blob(data,{type:"video/webm"});
 const a=document.createElement("a");
 a.href=URL.createObjectURL(blob);
