@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VoidUpLift – Reels Editor (MP4)</title>
+<title>VoidUpLift – Reels Editor</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Anton&family=Bebas+Neue&family=Playfair+Display&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -23,6 +23,8 @@ body{
   flex-direction:column;
   height:100vh;
 }
+
+/* PREVIEW */
 .preview{
   display:flex;
   flex-direction:column;
@@ -30,7 +32,7 @@ body{
   padding:8px 0;
 }
 canvas{
-  width:45vw;
+  width:44vw;
   max-width:220px;
   aspect-ratio:9/16;
   border-radius:16px;
@@ -38,58 +40,107 @@ canvas{
   background:#000;
 }
 .play{
-  font-size:32px;
+  font-size:30px;
   color:#ccc;
-  margin-top:6px;
   cursor:pointer;
+  margin-top:6px;
 }
+
+/* PANEL */
 .panel{
   flex:1;
   background:#050505;
   overflow-y:auto;
   padding:10px;
 }
+.row{margin-bottom:10px}
 input,textarea,select,button{
   width:100%;
   background:#111;
   border:1px solid #333;
   color:#fff;
   padding:10px;
-  margin-bottom:8px;
 }
-textarea{height:70px}
+textarea{height:60px}
 button{background:#1a1a1a}
-a{text-align:center;color:#9ca3af;display:block}
+.status{
+  text-align:center;
+  color:#9ca3af;
+  font-size:13px;
+}
+.icon-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+a{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  color:#9ca3af;
+  text-decoration:none;
+}
 </style>
 </head>
 
 <body>
 <div class="app">
 
+<!-- PREVIEW -->
 <div class="preview">
   <canvas id="canvas" width="1080" height="1920"></canvas>
   <span id="playBtn" class="material-icons play">play_arrow</span>
 </div>
 
+<!-- CONTROLS -->
 <div class="panel">
-  <textarea id="text" placeholder="Drag text on reel"></textarea>
 
+<div class="row">
+  <textarea id="text" placeholder="Drag text on reel"></textarea>
+</div>
+
+<div class="row">
   <select id="font">
     <option>Poppins</option>
     <option>Anton</option>
     <option>Bebas Neue</option>
     <option>Playfair Display</option>
   </select>
+</div>
 
+<div class="row">
+  <input type="range" id="size" min="30" max="120" value="60">
+</div>
+
+<div class="row">
   <input type="color" id="color" value="#ffffff">
+</div>
 
+<div class="row">
   <input type="file" id="imgInput" accept="image/*">
+</div>
 
+<div class="row">
   <label>Duration (seconds)</label>
   <input type="number" id="duration" value="17" min="5" max="60">
+</div>
 
-  <button onclick="exportMP4()">Export MP4</button>
-  <a id="dl" hidden>Download MP4</a>
+<div class="row">
+  <button class="icon-btn" onclick="exportMP4()">
+    <span class="material-icons">movie</span>
+    Export MP4
+  </button>
+</div>
+
+<div class="status" id="status">Idle</div>
+
+<a id="download" hidden>
+  <span class="material-icons">download</span>
+  Download MP4
+</a>
+
 </div>
 </div>
 
@@ -99,52 +150,62 @@ a{text-align:center;color:#9ca3af;display:block}
 <script>
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+const statusEl = document.getElementById("status");
+const download = document.getElementById("download");
 
 let img = new Image();
 let txt = "";
 let font = "Poppins";
+let size = 60;
 let color = "#fff";
 let duration = 17;
 let tx = 100, ty = 160;
-let dragging = false;
 
-let playing = false;
-let time = 0;
-let last = 0;
+let dragging=false;
+let playing=false;
+let time=0,last=0;
 
-imgInput.onchange = e => img.src = URL.createObjectURL(e.target.files[0]);
-text.oninput = e => txt = e.target.value;
-font.onchange = e => font = e.target.value;
-color.oninput = e => color = e.target.value;
-duration.oninput = e => duration = e.target.value;
+/* INPUTS */
+imgInput.onchange=e=>img.src=URL.createObjectURL(e.target.files[0]);
+text.oninput=e=>txt=e.target.value;
+font.onchange=e=>font=e.target.value;
+size.oninput=e=>size=e.target.value;
+color.oninput=e=>color=e.target.value;
+duration.oninput=e=>duration=e.target.value;
 
-canvas.onpointerdown = () => dragging = true;
-canvas.onpointerup = () => dragging = false;
-canvas.onpointermove = e => {
-  if(!dragging) return;
-  const r = canvas.getBoundingClientRect();
-  tx = (e.clientX - r.left) * (1080 / r.width);
-  ty = (e.clientY - r.top) * (1920 / r.height);
+/* DRAG */
+canvas.onpointerdown=()=>dragging=true;
+canvas.onpointerup=()=>dragging=false;
+canvas.onpointermove=e=>{
+  if(!dragging)return;
+  const r=canvas.getBoundingClientRect();
+  tx=(e.clientX-r.left)*(1080/r.width);
+  ty=(e.clientY-r.top)*(1920/r.height);
 };
 
+/* TEXT WRAP */
 function wrap(text,x,y,max,l){
-  let words=text.split(" "),line="";
-  for(let w of words){
-    let test=line+w+" ";
+  let w=text.split(" "),line="";
+  for(let word of w){
+    let test=line+word+" ";
     if(ctx.measureText(test).width>max){
       ctx.fillText(line,x,y);
-      line=w+" ";
+      line=word+" ";
       y+=l;
     }else line=test;
   }
   ctx.fillText(line,x,y);
 }
 
+/* DRAW */
 function draw(t){
   ctx.clearRect(0,0,1080,1920);
-  ctx.globalAlpha = Math.min(1, t/1.2);
 
-  if(t >= duration-3){
+  // Fade-in
+  ctx.globalAlpha=Math.min(1,t/1.2);
+
+  // End credit
+  if(t>=duration-3){
     ctx.fillStyle="#fff";
     ctx.fillRect(0,0,1080,1920);
     ctx.fillStyle="#000";
@@ -165,13 +226,14 @@ function draw(t){
   }
 
   ctx.fillStyle=color;
-  ctx.font="60px "+font;
+  ctx.font=size+"px "+font;
   ctx.textAlign="left";
-  wrap(txt,tx,ty,900,70);
+  wrap(txt,tx,ty,900,size+10);
 
   ctx.globalAlpha=1;
 }
 
+/* PLAY */
 playBtn.onclick=()=>{
   playing=!playing;
   playBtn.textContent=playing?"pause":"play_arrow";
@@ -182,7 +244,7 @@ playBtn.onclick=()=>{
 };
 
 function loop(now){
-  if(!playing) return;
+  if(!playing)return;
   time+=(now-last)/1000;
   last=now;
   draw(time);
@@ -194,44 +256,50 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 
-/* ===== MP4 EXPORT USING FFMPEG ===== */
+/* EXPORT MP4 */
 async function exportMP4(){
+  statusEl.textContent="Recording frames...";
+  download.hidden=true;
   time=0;
-  const stream = canvas.captureStream(30);
-  const recorder = new MediaRecorder(stream);
-  const chunks = [];
 
-  recorder.ondataavailable = e => chunks.push(e.data);
-  recorder.onstop = async () => {
-    const webmBlob = new Blob(chunks,{type:"video/webm"});
-    const ffmpeg = new FFmpeg();
+  const stream=canvas.captureStream(30);
+  const recorder=new MediaRecorder(stream);
+  const chunks=[];
 
-    await ffmpeg.load({
-      coreURL: "https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js",
-      wasmURL: "https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.wasm"
-    });
-
-    await ffmpeg.writeFile("input.webm", await webmBlob.arrayBuffer());
-    await ffmpeg.exec(["-i","input.webm","-movflags","faststart","-pix_fmt","yuv420p","out.mp4"]);
-
-    const mp4 = await ffmpeg.readFile("out.mp4");
-    const mp4Blob = new Blob([mp4.buffer],{type:"video/mp4"});
-
-    dl.href = URL.createObjectURL(mp4Blob);
-    dl.download = "VoidUpLift_Reel.mp4";
-    dl.hidden = false;
-    dl.textContent = "Download MP4";
-  };
-
+  recorder.ondataavailable=e=>chunks.push(e.data);
   recorder.start();
-  const i=setInterval(()=>{
+
+  const recordInterval=setInterval(()=>{
     time+=1/30;
+    statusEl.textContent="Recording: "+time.toFixed(1)+"s / "+duration+"s";
     draw(time);
     if(time>=duration){
-      clearInterval(i);
+      clearInterval(recordInterval);
       recorder.stop();
     }
   },33);
+
+  recorder.onstop=async ()=>{
+    statusEl.textContent="Loading FFmpeg...";
+    const webmBlob=new Blob(chunks,{type:"video/webm"});
+
+    const { FFmpeg } = FFmpegWASM;
+    const ffmpeg=new FFmpeg();
+    await ffmpeg.load({
+      coreURL:"https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js",
+      wasmURL:"https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.wasm"
+    });
+
+    statusEl.textContent="Converting to MP4...";
+    await ffmpeg.writeFile("input.webm",await webmBlob.arrayBuffer());
+    await ffmpeg.exec(["-i","input.webm","-movflags","faststart","-pix_fmt","yuv420p","out.mp4"]);
+    const mp4=await ffmpeg.readFile("out.mp4");
+
+    const mp4Blob=new Blob([mp4.buffer],{type:"video/mp4"});
+    download.href=URL.createObjectURL(mp4Blob);
+    download.hidden=false;
+    statusEl.textContent="Export complete";
+  };
 }
 </script>
 </body>
