@@ -3,299 +3,528 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- ========================================================= -->
+<!--                    APP TITLE                              -->
+<!-- ========================================================= -->
 <title>VoidUpLift Reels Editor</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Anton&family=Bebas+Neue&family=Playfair+Display&family=Oswald&family=Pacifico&family=Cinzel&display=swap" rel="stylesheet">
+<!-- ========================================================= -->
+<!--                    GOOGLE FONTS                           -->
+<!-- ========================================================= -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Anton&family=Bebas+Neue&family=Playfair+Display&family=Oswald&family=Pacifico&family=Cinzel&display=swap" rel="stylesheet">
+
+<!-- ========================================================= -->
+<!--                    MATERIAL ICONS                         -->
+<!-- ========================================================= -->
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+<!-- ========================================================= -->
+<!--                    GLOBAL STYLES                          -->
+<!-- ========================================================= -->
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#000;color:#fff;font-family:Poppins;height:100vh;overflow:hidden}
-.app{display:flex;flex-direction:column;height:100vh}
 
-.preview{display:flex;flex-direction:column;align-items:center;padding:10px}
-canvas{width:48vw;max-width:220px;aspect-ratio:9/16;border-radius:16px;border:2px solid #2a2a2a}
-.play{font-size:32px;margin-top:6px;cursor:pointer}
-
-.controls{flex:1;background:#050505;overflow-y:auto;padding:10px}
-.iconbar{display:flex;justify-content:space-around;padding:8px;border-top:1px solid #222;border-bottom:1px solid #222}
-.iconbar span{font-size:26px;cursor:pointer}
-
-.panel{display:none}
-.panel.active{display:block}
-
-textarea,input,select,button{
-width:100%;background:#111;border:1px solid #333;
-color:#fff;padding:10px;margin-bottom:10px
+/* ---------- RESET ---------- */
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
 }
-textarea{height:64px}
 
-.action-bar{
-position:sticky;bottom:0;background:#0b0b0b;
-padding:10px;border-top:1px solid #222
+/* ---------- BODY ---------- */
+body{
+  background:#000;
+  color:#fff;
+  font-family:Poppins, sans-serif;
+  height:100vh;
+  overflow:hidden;
 }
-.status{text-align:center;font-size:13px;color:#9ca3af;margin-top:6px}
+
+/* ---------- APP LAYOUT ---------- */
+.app{
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+
+/* ---------- PREVIEW ---------- */
+.preview{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:10px;
+}
+
+/* ---------- CANVAS ---------- */
+canvas{
+  width:48vw;
+  max-width:220px;
+  aspect-ratio:9/16;
+  border-radius:16px;
+  border:2px solid #2a2a2a;
+  background:#000;
+}
+
+/* ---------- PLAY BUTTON ---------- */
+.play{
+  font-size:32px;
+  margin-top:6px;
+  cursor:pointer;
+}
+
+/* ---------- ICON BAR ---------- */
+.iconbar{
+  display:flex;
+  justify-content:space-around;
+  padding:8px;
+  border-top:1px solid #222;
+  border-bottom:1px solid #222;
+  background:#050505;
+}
+
+.iconbar span{
+  font-size:26px;
+  cursor:pointer;
+}
+
+/* ---------- CONTROLS ---------- */
+.controls{
+  flex:1;
+  background:#050505;
+  overflow-y:auto;
+  padding:10px;
+}
+
+/* ---------- PANELS ---------- */
+.panel{
+  display:none;
+}
+
+.panel.active{
+  display:block;
+}
+
+/* ---------- INPUTS ---------- */
+textarea,
+input,
+select{
+  width:100%;
+  background:#111;
+  border:1px solid #333;
+  color:#fff;
+  padding:10px;
+  margin-bottom:10px;
+}
+
+/* ---------- TEXTAREA ---------- */
+textarea{
+  height:70px;
+}
+
+/* ---------- STATUS ---------- */
+.status{
+  text-align:center;
+  font-size:13px;
+  color:#9ca3af;
+  padding:6px;
+}
+
 </style>
 </head>
 
 <body>
+
+<!-- ========================================================= -->
+<!--                    APP ROOT                               -->
+<!-- ========================================================= -->
 <div class="app">
 
-<div class="preview">
-  <canvas id="canvas" width="1080" height="1920"></canvas>
-  <span id="playBtn" class="material-icons play">play_arrow</span>
-  <input type="range" id="timeline" min="0" max="17" step="0.01">
+  <!-- ================= PREVIEW ================= -->
+  <div class="preview">
+    <canvas id="canvas" width="1080" height="1920"></canvas>
+    <span id="playBtn" class="material-icons play">play_arrow</span>
+    <input type="range" id="timeline" min="0" max="17" step="0.01">
+  </div>
+
+  <!-- ================= ICON BAR ================= -->
+  <div class="iconbar">
+    <span class="material-icons" onclick="openPanel('textP')">text_fields</span>
+    <span class="material-icons" onclick="openPanel('fontP')">font_download</span>
+    <span class="material-icons" onclick="openPanel('imgP')">image</span>
+    <span class="material-icons" onclick="openPanel('audioP')">music_note</span>
+    <span class="material-icons" onclick="exportVideo()">download</span>
+  </div>
+
+  <!-- ================= CONTROLS ================= -->
+  <div class="controls">
+
+    <!-- -------- TEXT PANEL -------- -->
+    <div id="textP" class="panel active">
+      <textarea id="text" placeholder="Enter your text here"></textarea>
+
+      <label>
+        <input type="checkbox" id="typeEffect">
+        Typing effect
+      </label>
+
+      <select id="textAnim">
+        <option value="fade">Fade</option>
+        <option value="slideUp">Slide Up</option>
+        <option value="slideLeft">Slide Left</option>
+        <option value="zoom">Zoom In</option>
+        <option value="bounce">Bounce</option>
+        <option value="blur">Blur In</option>
+      </select>
+
+      <input type="range" id="size" min="30" max="120" value="60">
+      <input type="color" id="color" value="#ffffff">
+    </div>
+
+    <!-- -------- FONT PANEL -------- -->
+    <div id="fontP" class="panel">
+      <select id="font">
+        <option>Poppins</option>
+        <option>Anton</option>
+        <option>Bebas Neue</option>
+        <option>Playfair Display</option>
+        <option>Oswald</option>
+        <option>Pacifico</option>
+        <option>Cinzel</option>
+      </select>
+    </div>
+
+    <!-- -------- IMAGE PANEL -------- -->
+    <div id="imgP" class="panel">
+      <input type="file" id="imgInput" accept="image/*">
+      <label>Duration (seconds)</label>
+      <input type="number" id="duration" value="17" min="5" max="60">
+    </div>
+
+    <!-- -------- AUDIO PANEL -------- -->
+    <div id="audioP" class="panel">
+      <input type="file" id="audioInput" accept="audio/*">
+    </div>
+
+    <!-- -------- STATUS -------- -->
+    <div class="status" id="status">Idle</div>
+
+  </div>
 </div>
 
-<div class="iconbar">
-  <span class="material-icons" onclick="openPanel('textP')">text_fields</span>
-  <span class="material-icons" onclick="openPanel('fontP')">font_download</span>
-  <span class="material-icons" onclick="openPanel('imgP')">image</span>
-  <span class="material-icons" onclick="openPanel('audioP')">music_note</span>
-</div>
-
-<div class="controls">
-
-<div id="textP" class="panel active">
-  <textarea id="text" placeholder="Text"></textarea>
-  <label><input type="checkbox" id="typeEffect"> Typing effect</label>
-  <input type="range" id="size" min="30" max="120" value="60">
-  <input type="color" id="color" value="#ffffff">
-</div>
-
-<div id="fontP" class="panel">
-  <select id="font">
-    <option>Poppins</option>
-    <option>Anton</option>
-    <option>Bebas Neue</option>
-    <option>Playfair Display</option>
-    <option>Oswald</option>
-    <option>Pacifico</option>
-    <option>Cinzel</option>
-  </select>
-</div>
-
-<div id="imgP" class="panel">
-  <input type="file" id="imgInput" accept="image/*">
-  <label>Duration (seconds)</label>
-  <input type="number" id="duration" value="17" min="5" max="60">
-  <label>End Screen</label>
-  <select id="endStyle">
-    <option value="1">White</option>
-    <option value="2">Black</option>
-    <option value="3">Blue</option>
-    <option value="4">Purple</option>
-    <option value="5">Teal</option>
-    <option value="6">Orange</option>
-    <option value="7">Red</option>
-  </select>
-</div>
-
-<div id="audioP" class="panel">
-  <input type="file" id="audioInput" accept="audio/*">
-</div>
-
-<div class="action-bar">
-  <button id="exportBtn" onclick="exportVideo()">Export Video</button>
-  <div class="status" id="status">Idle</div>
-</div>
-
-</div>
-</div>
-
+<!-- ========================================================= -->
+<!--                    SCRIPT SECTION                         -->
+<!-- ========================================================= -->
 <script>
+
+/* ============================================================
+   CANVAS SETUP
+============================================================ */
 const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+const ctx = canvas.getContext("2d",{alpha:false});
+ctx.imageSmoothingEnabled = true;
+ctx.imageSmoothingQuality = "high";
+
+/* ============================================================
+   TIMELINE
+============================================================ */
 const timeline = document.getElementById("timeline");
 
-/* STATE */
+/* ============================================================
+   STATE VARIABLES
+============================================================ */
 let img = new Image();
 let audio = null;
+
 let txt = "";
 let font = "Poppins";
 let size = 60;
-let color = "#fff";
+let color = "#ffffff";
+
 let duration = 17;
-let tx = 100, ty = 160;
-let endStyle = 1;
+let tx = 100;
+let ty = 160;
+
 let typing = false;
-let typedDone = false;
+let textAnim = "fade";
+
+let startFadeDuration = 1.2;
+let endCreditDuration = 2.5;
 
 let dragging = false;
 let playing = false;
-let time = 0, last = 0;
 
-/* INPUTS */
-imgInput.onchange = e => img.src = URL.createObjectURL(e.target.files[0]);
-audioInput.onchange = e => audio = new Audio(URL.createObjectURL(e.target.files[0]));
-text.oninput = e => { txt = e.target.value; typedDone = false; };
-font.onchange = e => font = e.target.value;
-size.oninput = e => size = +e.target.value;
-color.oninput = e => color = e.target.value;
-duration.oninput = e => { duration = +e.target.value; timeline.max = duration; };
-endStyle.onchange = e => endStyle = +e.target.value;
-typeEffect.onchange = e => { typing = e.target.checked; typedDone = false; };
+let time = 0;
+let last = 0;
 
-timeline.oninput = e => { time = +e.target.value; draw(time); };
-
-/* PANEL SWITCH */
-function openPanel(id){
-document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-document.getElementById(id).classList.add("active");
+/* ============================================================
+   LIVE DRAW HELPER
+============================================================ */
+function liveDraw(){
+  draw(time);
 }
 
-/* DRAG TEXT */
-canvas.onpointerdown = () => dragging = true;
-canvas.onpointerup = () => dragging = false;
-canvas.onpointermove = e => {
-if(!dragging) return;
-const r = canvas.getBoundingClientRect();
-tx = (e.clientX - r.left) * (1080 / r.width);
-ty = (e.clientY - r.top) * (1920 / r.height);
+/* ============================================================
+   INPUT HANDLERS
+============================================================ */
+imgInput.onchange = e=>{
+  img.src = URL.createObjectURL(e.target.files[0]);
+  img.onload = liveDraw;
 };
 
-/* TEXT WRAP */
-function wrap(text,x,y,max,l){
-let words=text.split(" "),line="";
-for(let w of words){
-let test=line+w+" ";
-if(ctx.measureText(test).width>max){
-ctx.fillText(line,x,y);
-line=w+" ";
-y+=l;
-}else line=test;
-}
-ctx.fillText(line,x,y);
+audioInput.onchange = e=>{
+  audio = new Audio(URL.createObjectURL(e.target.files[0]));
+};
+
+text.oninput = e=>{
+  txt = e.target.value;
+  liveDraw();
+};
+
+font.onchange = e=>{
+  font = e.target.value;
+  liveDraw();
+};
+
+size.oninput = e=>{
+  size = +e.target.value;
+  liveDraw();
+};
+
+color.oninput = e=>{
+  color = e.target.value;
+  liveDraw();
+};
+
+textAnim.onchange = e=>{
+  textAnim = e.target.value;
+  liveDraw();
+};
+
+typeEffect.onchange = e=>{
+  typing = e.target.checked;
+  liveDraw();
+};
+
+duration.oninput = e=>{
+  duration = +e.target.value;
+  timeline.max = duration;
+  liveDraw();
+};
+
+timeline.oninput = e=>{
+  time = +e.target.value;
+  liveDraw();
+};
+
+/* ============================================================
+   PANEL SWITCHING
+============================================================ */
+function openPanel(id){
+  document.querySelectorAll(".panel").forEach(p=>{
+    p.classList.remove("active");
+  });
+  document.getElementById(id).classList.add("active");
 }
 
-/* DRAW */
+/* ============================================================
+   DRAG TEXT
+============================================================ */
+canvas.onpointerdown = ()=> dragging = true;
+canvas.onpointerup = ()=> dragging = false;
+
+canvas.onpointermove = e=>{
+  if(!dragging) return;
+  const r = canvas.getBoundingClientRect();
+  tx = (e.clientX - r.left) * (1080 / r.width);
+  ty = (e.clientY - r.top) * (1920 / r.height);
+  liveDraw();
+};
+
+/* ============================================================
+   TEXT WRAPPING
+============================================================ */
+function wrap(text,x,y,max,lineHeight){
+  let words = text.split(" ");
+  let line = "";
+
+  for(let w of words){
+    let test = line + w + " ";
+    if(ctx.measureText(test).width > max){
+      ctx.fillText(line,x,y);
+      line = w + " ";
+      y += lineHeight;
+    }else{
+      line = test;
+    }
+  }
+  ctx.fillText(line,x,y);
+}
+
+/* ============================================================
+   DRAW FUNCTION
+============================================================ */
 function draw(t){
-ctx.clearRect(0,0,1080,1920);
+  ctx.clearRect(0,0,1080,1920);
 
-/* FADE IN MAIN */
-let alpha = t < 1.2 ? t/1.2 : 1;
-ctx.globalAlpha = alpha;
+  /* ---------- END CREDITS ---------- */
+  if(t >= duration - endCreditDuration){
+    let a = Math.min(1,(t-(duration-endCreditDuration)));
+    ctx.globalAlpha = a;
+    ctx.fillStyle = "#2a2a2a";
+    ctx.fillRect(0,0,1080,1920);
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 88px Poppins";
+    ctx.textAlign = "center";
+    ctx.fillText("VoidUpLift",540,960);
+    ctx.globalAlpha = 1;
+    return;
+  }
 
-/* END SCREEN */
-if(t >= duration - 3){
-const bgColors = ["#ffffff","#000000","#0f172a","#581c87","#064e3b","#7c2d12","#7f1d1d"];
-const textColors = ["#000","#fff","#fff","#fff","#fff","#fff","#fff"];
-const fade = Math.min(1,(t-(duration-3))/1);
+  /* ---------- BACKGROUND ---------- */
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0,0,1080,1920);
 
-ctx.globalAlpha = fade;
-ctx.fillStyle = bgColors[endStyle-1];
-ctx.fillRect(0,0,1080,1920);
+  /* ---------- START FADE ---------- */
+  let startAlpha = Math.min(1, t / startFadeDuration);
 
-ctx.globalAlpha = fade;
-ctx.fillStyle = textColors[endStyle-1];
-ctx.font = "90px Playfair Display";
-ctx.textAlign = "center";
-ctx.fillText("VoidUpLift",540,960);
-ctx.globalAlpha = 1;
-return;
+  /* ---------- IMAGE ---------- */
+  if(img.width){
+    let s = 1080 / img.width;
+    let h = img.height * s;
+    let y = (1920 - h) / 2;
+    ctx.globalAlpha = startAlpha;
+    ctx.drawImage(img,0,y,1080,h);
+  }
+
+  /* ---------- TEXT ---------- */
+  ctx.fillStyle = color;
+  ctx.font = size + "px " + font;
+  ctx.textAlign = "left";
+  ctx.globalAlpha = startAlpha;
+
+  let showText = typing
+    ? txt.slice(0, Math.floor(t * 12))
+    : txt;
+
+  let x = tx;
+  let y = ty;
+
+  if(textAnim === "slideUp") y += (1-startAlpha)*60;
+  if(textAnim === "slideLeft") x -= (1-startAlpha)*60;
+
+  if(textAnim === "zoom"){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.scale(0.85+startAlpha*0.15,0.85+startAlpha*0.15);
+    wrap(showText,0,0,900,size+10);
+    ctx.restore();
+    return;
+  }
+
+  if(textAnim === "bounce"){
+    y += Math.sin(startAlpha*Math.PI)*20;
+  }
+
+  if(textAnim === "blur"){
+    ctx.shadowColor = color;
+    ctx.shadowBlur = (1-startAlpha)*20;
+  }
+
+  wrap(showText,x,y,900,size+10);
+
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
 }
 
-/* BG */
-ctx.fillStyle="#000";
-ctx.fillRect(0,0,1080,1920);
-
-/* IMAGE */
-if(img.width){
-const s=1080/img.width;
-const h=img.height*s;
-const y=(1920-h)/2;
-ctx.drawImage(img,0,y,1080,h);
-}
-
-/* TEXT */
-ctx.globalAlpha = 1;
-ctx.fillStyle = color;
-ctx.font = size+"px "+font;
-ctx.textAlign="left";
-
-let displayText = txt;
-if(typing && !typedDone){
-const chars = Math.min(txt.length, Math.floor(t*10));
-displayText = txt.slice(0,chars);
-if(chars >= txt.length) typedDone = true;
-}
-
-wrap(displayText,tx,ty,900,size+10);
-}
-
-/* PLAY */
+/* ============================================================
+   PLAYBACK
+============================================================ */
 playBtn.onclick = ()=>{
-playing = !playing;
-playBtn.textContent = playing ? "pause" : "play_arrow";
-if(audio){
-audio.currentTime = 0;
-playing ? audio.play() : audio.pause();
-}
-if(playing){
-last = performance.now();
-requestAnimationFrame(loop);
-}
+  playing = !playing;
+  playBtn.textContent = playing ? "pause" : "play_arrow";
+
+  if(audio){
+    audio.currentTime = 0;
+    playing ? audio.play() : audio.pause();
+  }
+
+  if(playing){
+    last = performance.now();
+    requestAnimationFrame(loop);
+  }
 };
 
 function loop(n){
-if(!playing) return;
-time += (n-last)/1000;
-last = n;
-timeline.value = time;
-draw(time);
-if(time >= duration){
-playing = false;
-playBtn.textContent = "play_arrow";
-if(audio) audio.pause();
-return;
-}
-requestAnimationFrame(loop);
+  if(!playing) return;
+  time += (n - last) / 1000;
+  last = n;
+  timeline.value = time;
+  draw(time);
+
+  if(time >= duration){
+    playing = false;
+    playBtn.textContent = "play_arrow";
+    if(audio) audio.pause();
+    return;
+  }
+  requestAnimationFrame(loop);
 }
 
-/* EXPORT — AUTO DOWNLOAD (UNCHANGED) */
+/* ============================================================
+   EXPORT VIDEO
+============================================================ */
 function exportVideo(){
-exportBtn.disabled = true;
-status.textContent = "Recording…";
-time = 0;
-if(audio){ audio.currentTime = 0; audio.play(); }
+  if(playing) return;
 
-const stream = canvas.captureStream(30);
-if(audio){
-const ctxA = new AudioContext();
-const src = ctxA.createMediaElementSource(audio);
-const dest = ctxA.createMediaStreamDestination();
-src.connect(dest);
-src.connect(ctxA.destination);
-dest.stream.getTracks().forEach(t=>stream.addTrack(t));
+  status.textContent = "Recording…";
+  time = 0;
+
+  if(audio){
+    audio.currentTime = 0;
+    audio.play();
+  }
+
+  const stream = canvas.captureStream(30);
+
+  if(audio){
+    const ac = new AudioContext();
+    const src = ac.createMediaElementSource(audio);
+    const dst = ac.createMediaStreamDestination();
+    src.connect(dst);
+    src.connect(ac.destination);
+    dst.stream.getTracks().forEach(t=>stream.addTrack(t));
+  }
+
+  const recorder = new MediaRecorder(stream,{
+    mimeType:"video/webm;codecs=vp9",
+    videoBitsPerSecond:12000000
+  });
+
+  const chunks = [];
+  recorder.ondataavailable = e=>chunks.push(e.data);
+  recorder.start();
+
+  const interval = setInterval(()=>{
+    time += 1/30;
+    draw(time);
+    if(time >= duration){
+      clearInterval(interval);
+      recorder.stop();
+    }
+  },33);
+
+  recorder.onstop = ()=>{
+    const blob = new Blob(chunks,{type:"video/webm"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "VoidUpLift_Reel.webm";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    status.textContent = "Download started";
+  };
 }
 
-const rec = new MediaRecorder(stream);
-const data = [];
-rec.ondataavailable = e => data.push(e.data);
-rec.start();
-
-const i = setInterval(()=>{
-time += 1/30;
-status.textContent = `Recording… ${(duration-time).toFixed(1)}s left`;
-draw(time);
-if(time >= duration){
-clearInterval(i);
-rec.stop();
-}
-},33);
-
-rec.onstop = ()=>{
-const blob = new Blob(data,{type:"video/webm"});
-const a = document.createElement("a");
-a.href = URL.createObjectURL(blob);
-a.download = "VoidUpLift_Reel.webm";
-document.body.appendChild(a);
-a.click();
-a.remove();
-status.textContent = "Download started";
-exportBtn.disabled = false;
-};
-}
 </script>
 </body>
 </html>
