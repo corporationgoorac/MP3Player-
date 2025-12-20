@@ -3,326 +3,463 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VoidUpLift Reels Editor Pro</title>
+<title>VoidUpLift Reels Editor Ultra</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Anton&family=Bebas+Neue&family=Playfair+Display&family=Oswald&family=Pacifico&family=Cinzel&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <style>
+:root { --accent: #00ff88; --bg: #050505; --panel: #111; }
 *{ box-sizing:border-box; margin:0; padding:0; }
-body{ background:#000; color:#fff; font-family:Poppins, sans-serif; height:100vh; overflow:hidden; }
-.app{ display:flex; flex-direction:column; height:100vh; }
-.preview{ display:flex; flex-direction:column; align-items:center; padding:10px; background: #0a0a0a; }
-canvas{ width:48vw; max-width:220px; aspect-ratio:9/16; border-radius:16px; border:2px solid #333; background:#000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-.play{ font-size:32px; margin-top:10px; cursor:pointer; color: #00ff88; }
-.iconbar{ display:flex; justify-content:space-around; padding:12px; border-top:1px solid #222; background:#050505; }
-.iconbar span{ font-size:28px; cursor:pointer; transition: 0.2s; }
-.iconbar span:hover{ color: #00ff88; }
-.controls{ flex:1; background:#050505; overflow-y:auto; padding:15px; border-top: 1px solid #222; }
-.panel{ display:none; }
-.panel.active{ display:block; }
-textarea, input, select{ width:100%; background:#111; border:1px solid #333; color:#fff; padding:12px; margin-bottom:12px; border-radius: 8px; }
-textarea{ height:80px; resize: none; }
-label{ font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 5px; }
-.status{ text-align:center; font-size:13px; color:#00ff88; padding:8px; background: #111; border-radius: 5px; margin-top: 5px; font-weight: bold; }
-input[type="range"] { accent-color: #00ff88; }
-.checkbox-group { display: flex; gap: 15px; margin-bottom: 15px; }
-.checkbox-group label { display: flex; align-items: center; gap: 5px; text-transform: none; color: #fff; font-size: 14px; }
+body{ background:#000; color:#fff; font-family:'Poppins', sans-serif; height:100vh; overflow:hidden; }
+
+.app{ display:grid; grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; height:100vh; }
+
+/* Preview Area */
+.preview-section { background: #0a0a0a; display: flex; flex-direction: column; align-items: center; padding: 15px; border-bottom: 1px solid #222; }
+canvas{ 
+    width: 45vw; max-width: 210px; aspect-ratio: 9/16; 
+    border-radius: 12px; border: 2px solid #333; background: #000;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+}
+.playback-controls { display: flex; align-items: center; gap: 15px; width: 100%; max-width: 400px; margin-top: 10px; }
+#timeline { flex: 1; accent-color: var(--accent); cursor: pointer; }
+.play-btn { font-size: 35px; cursor: pointer; color: var(--accent); transition: transform 0.2s; }
+.play-btn:hover { transform: scale(1.1); }
+
+/* Navigation */
+.nav-bar { display: flex; justify-content: space-around; padding: 12px; background: var(--bg); border-bottom: 1px solid #222; }
+.nav-bar span { font-size: 28px; cursor: pointer; color: #666; transition: 0.3s; }
+.nav-bar span.active { color: var(--accent); }
+
+/* Controls */
+.settings-area { background: var(--bg); overflow-y: auto; padding: 20px; }
+.panel { display: none; animation: fadeIn 0.3s ease; }
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Form Elements */
+label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-bottom: 8px; margin-top: 15px; }
+textarea, select, input[type="text"], input[type="number"] { 
+    width: 100%; background: var(--panel); border: 1px solid #333; color: #fff; 
+    padding: 12px; border-radius: 8px; font-family: inherit;
+}
+textarea { height: 80px; resize: none; border-left: 3px solid var(--accent); }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 6px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.checkbox-card { 
+    background: var(--panel); padding: 12px; border-radius: 8px; 
+    display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid #222;
+}
+
+/* Export Status Overlay */
+#exportOverlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9); 
+    display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
+}
+.loader { width: 100px; height: 100px; border: 5px solid #222; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
-
 <body>
+
+<div id="exportOverlay">
+    <div class="loader"></div>
+    <h2 style="margin-top:20px" id="exportStatus">Rendering...</h2>
+    <p id="exportProgress">0%</p>
+</div>
+
 <div class="app">
-  <div class="preview">
-    <canvas id="canvas" width="1080" height="1920"></canvas>
-    <span id="playBtn" class="material-icons play">play_arrow</span>
-    <input type="range" id="timeline" min="0" max="10" step="0.01" style="width: 80%;">
-  </div>
-
-  <div class="iconbar">
-    <span class="material-icons" onclick="openPanel('textP')">text_fields</span>
-    <span class="material-icons" onclick="openPanel('fontP')">font_download</span>
-    <span class="material-icons" onclick="openPanel('imgP')">image</span>
-    <span class="material-icons" onclick="openPanel('audioP')">music_note</span>
-    <span class="material-icons" onclick="exportVideo()" style="color:#00ff88">file_download</span>
-  </div>
-
-  <div class="controls">
-    <div id="textP" class="panel active">
-      <label>Content</label>
-      <textarea id="text" placeholder="Type your message..."></textarea>
-      
-      <div class="checkbox-group">
-        <label><input type="checkbox" id="typeEffect"> Typing</label>
-        <label><input type="checkbox" id="textOutline"> Outline</label>
-      </div>
-
-      <label>Typing Speed</label>
-      <input type="range" id="typingSpeedInput" min="5" max="100" value="25">
-
-      <label>Animation Style</label>
-      <select id="textAnim">
-        <option value="fade">Smooth Fade</option>
-        <option value="slideUp">Slide Up</option>
-        <option value="slideLeft">Slide Left</option>
-        <option value="zoom">Elastic Zoom</option>
-        <option value="bounce">Bouncy Loop</option>
-        <option value="blur">Blur Transition</option>
-      </select>
-
-      <label>Font Size</label>
-      <input type="range" id="sizeInput" min="20" max="200" value="80">
-      
-      <label>Text Color</label>
-      <input type="color" id="colorInput" value="#ffffff">
+    <div class="preview-section">
+        <canvas id="mainCanvas" width="1080" height="1920"></canvas>
+        <div class="playback-controls">
+            <span id="playBtn" class="material-icons play-btn">play_arrow</span>
+            <input type="range" id="timeline" min="0" value="0" step="0.01">
+        </div>
+        <div id="timeDisplay" style="font-size:12px; color:#555; margin-top:5px">00:00 / 00:10</div>
     </div>
 
-    <div id="fontP" class="panel">
-      <label>Choose Style</label>
-      <select id="fontSelect">
-        <option value="Poppins">Poppins (Modern)</option>
-        <option value="Anton">Anton (Bold)</option>
-        <option value="Bebas Neue">Bebas Neue (Impact)</option>
-        <option value="Playfair Display">Playfair (Elegant)</option>
-        <option value="Oswald">Oswald (Narrow)</option>
-        <option value="Pacifico">Pacifico (Script)</option>
-        <option value="Cinzel">Cinzel (Classic)</option>
-      </select>
+    <div class="nav-bar">
+        <span class="material-icons active" onclick="tab(this, 'textTab')">notes</span>
+        <span class="material-icons" onclick="tab(this, 'styleTab')">palette</span>
+        <span class="material-icons" onclick="tab(this, 'fxTab')">auto_fix_high</span>
+        <span class="material-icons" onclick="tab(this, 'mediaTab')">perm_media</span>
+        <span class="material-icons" onclick="startExport()" style="color:var(--accent)">download</span>
     </div>
 
-    <div id="imgP" class="panel">
-      <label>Background Image</label>
-      <input type="file" id="imgInput" accept="image/*">
-      <label>Video Duration (Seconds)</label>
-      <input type="number" id="durationInput" value="10" min="1" max="60">
-    </div>
+    <div class="settings-area">
+        <div id="textTab" class="panel active">
+            <label>Message Content</label>
+            <textarea id="mainText" placeholder="Enter your reel quote here...">Design is intelligence made visible.</textarea>
+            
+            <div class="grid-2">
+                <div>
+                    <label>Text Animation</label>
+                    <select id="animType">
+                        <option value="none">Static</option>
+                        <option value="fade">Smooth Fade</option>
+                        <option value="slide">Slide In</option>
+                        <option value="zoom">Elastic Zoom</option>
+                        <option value="typewriter">Typewriter</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Typing Speed</label>
+                    <input type="range" id="typeSpeed" min="5" max="50" value="20">
+                </div>
+            </div>
+        </div>
 
-    <div id="audioP" class="panel">
-      <label>Background Music</label>
-      <input type="file" id="audioInput" accept="audio/*">
-    </div>
+        <div id="styleTab" class="panel">
+            <label>Typography</label>
+            <select id="fontFam">
+                <option value="Poppins">Poppins (Modern)</option>
+                <option value="Anton">Anton (Heavy)</option>
+                <option value="Bebas Neue">Bebas (Bold)</option>
+                <option value="Pacifico">Pacifico (Handwritten)</option>
+                <option value="Cinzel">Cinzel (Luxury)</option>
+            </select>
 
-    <div class="status" id="status">Ready to Edit</div>
-  </div>
+            <div class="grid-2">
+                <div>
+                    <label>Size</label>
+                    <input type="range" id="fontSize" min="40" max="250" value="80">
+                </div>
+                <div>
+                    <label>Color</label>
+                    <input type="color" id="fontColor" value="#ffffff">
+                </div>
+            </div>
+
+            <label>Letter Spacing</label>
+            <input type="range" id="letterSpacing" min="-10" max="50" value="0">
+        </div>
+
+        <div id="fxTab" class="panel">
+            <div class="grid-2">
+                <label class="checkbox-card">
+                    <input type="checkbox" id="showParticles" checked> Particles
+                </label>
+                <label class="checkbox-card">
+                    <input type="checkbox" id="showVignette" checked> Vignette
+                </label>
+            </div>
+
+            <label>Neon Glow Strength</label>
+            <input type="range" id="glowSize" min="0" max="50" value="0">
+            
+            <label>Text Outline (Stroke)</label>
+            <input type="range" id="strokeSize" min="0" max="20" value="0">
+        </div>
+
+        <div id="mediaTab" class="panel">
+            <label>Background Image</label>
+            <input type="file" id="bgUpload" accept="image/*">
+            
+            <label>Background Music</label>
+            <input type="file" id="audioUpload" accept="audio/*">
+
+            <label>Video Duration (Seconds)</label>
+            <input type="number" id="videoDur" value="10" min="1" max="60">
+        </div>
+    </div>
 </div>
 
 <script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d",{alpha:false});
-const timeline = document.getElementById("timeline");
+/** * CORE STATE 
+ */
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+const timeline = document.getElementById('timeline');
 
-let img = new Image();
+let bgImg = new Image();
 let audio = null;
-let txt = "Your Text Here";
-let activeFont = "Poppins";
-let activeSize = 80;
-let activeColor = "#ffffff";
-let typingSpeed = 25;
-let hasOutline = false;
+let particles = [];
+let isPlaying = false;
+let currentTime = 0;
+let lastFrameTime = 0;
 
-let duration = 10;
-let tx = 100; ty = 400;
-let typing = false;
-let textAnim = "fade";
-let startFadeDuration = 1.0;
-let endCreditDuration = 2.0;
-let dragging = false;
-let playing = false;
-let time = 0;
-let last = 0;
-
-function liveDraw(){ draw(time); }
-
-// UI LISTENERS
-document.getElementById("imgInput").onchange = e => { if(e.target.files[0]) { img.src = URL.createObjectURL(e.target.files[0]); img.onload = liveDraw; } };
-document.getElementById("audioInput").onchange = e => { if(e.target.files[0]) audio = new Audio(URL.createObjectURL(e.target.files[0])); };
-document.getElementById("text").oninput = e => { txt = e.target.value; liveDraw(); };
-document.getElementById("fontSelect").onchange = e => { activeFont = e.target.value; liveDraw(); };
-document.getElementById("sizeInput").oninput = e => { activeSize = parseInt(e.target.value); liveDraw(); };
-document.getElementById("colorInput").oninput = e => { activeColor = e.target.value; liveDraw(); };
-document.getElementById("typingSpeedInput").oninput = e => { typingSpeed = parseInt(e.target.value); liveDraw(); };
-document.getElementById("textAnim").onchange = e => { textAnim = e.target.value; liveDraw(); };
-document.getElementById("typeEffect").onchange = e => { typing = e.target.checked; liveDraw(); };
-document.getElementById("textOutline").onchange = e => { hasOutline = e.target.checked; liveDraw(); };
-document.getElementById("durationInput").oninput = e => { 
-    duration = Math.max(1, +e.target.value); 
-    timeline.max = duration; 
-    liveDraw(); 
-};
-timeline.oninput = e => { time = +e.target.value; liveDraw(); };
-
-function openPanel(id){
-  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-}
-
-// DRAG SYSTEM
-canvas.onpointerdown = ()=> dragging = true;
-canvas.onpointerup = ()=> dragging = false;
-canvas.onpointermove = e => {
-  if(!dragging) return;
-  const r = canvas.getBoundingClientRect();
-  tx = (e.clientX - r.left) * (1080 / r.width);
-  ty = (e.clientY - r.top) * (1920 / r.height);
-  liveDraw();
+// Config state
+const state = {
+    text: "Design is intelligence made visible.",
+    font: "Poppins",
+    size: 80,
+    color: "#ffffff",
+    anim: "fade",
+    typeSpeed: 20,
+    dur: 10,
+    letterSpacing: 0,
+    glow: 0,
+    stroke: 0,
+    particles: true,
+    vignette: true,
+    x: 150, y: 500
 };
 
-function wrapText(text,x,y,max,lineHeight){
-  let words = text.split(" ");
-  let line = "";
-  for(let w of words){
-    let test = line + w + " ";
-    if(ctx.measureText(test).width > max){
-      if(hasOutline){ ctx.strokeText(line,x,y); }
-      ctx.fillText(line,x,y);
-      line = w + " ";
-      y += lineHeight;
-    } else { line = test; }
-  }
-  if(hasOutline){ ctx.strokeText(line,x,y); }
-  ctx.fillText(line,x,y);
-}
-
-function draw(t){
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.clearRect(0,0,1080,1920);
-
-  // 1. END CREDITS LOGIC
-  if(t >= duration - endCreditDuration){
-    let alpha = Math.min(1,(t-(duration-endCreditDuration)));
-    ctx.globalAlpha = alpha; ctx.fillStyle = "#000"; ctx.fillRect(0,0,1080,1920);
-    ctx.fillStyle = "#fff"; ctx.font = "bold 90px Poppins"; ctx.textAlign = "center";
-    ctx.fillText("VOID UPLIFT",540,960); ctx.globalAlpha = 1; return;
-  }
-
-  // 2. BACKGROUND
-  ctx.fillStyle = "#000"; ctx.fillRect(0,0,1080,1920);
-  let startAlpha = Math.min(1, t / startFadeDuration);
-
-  if(img.width){
-    let s = 1080 / img.width; let h = img.height * s; let yPos = (1920 - h) / 2;
-    ctx.globalAlpha = startAlpha; ctx.drawImage(img,0,yPos,1080,h);
-  }
-
-  // 3. TEXT ENGINE
-  ctx.fillStyle = activeColor;
-  ctx.font = activeSize + "px " + activeFont;
-  ctx.textAlign = "left";
-  ctx.globalAlpha = startAlpha;
-  
-  if(hasOutline){
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = activeSize / 10;
-    ctx.lineJoin = "round";
-  }
-
-  let displayTxt = typing ? txt.substring(0, Math.floor(t * typingSpeed)) : txt;
-  let x = tx; let y = ty;
-
-  // ANIMATION ENGINE
-  if(textAnim === "slideUp") y += (1-startAlpha)*100;
-  if(textAnim === "slideLeft") x -= (1-startAlpha)*100;
-  if(textAnim === "zoom"){
-    ctx.save(); ctx.translate(x,y); ctx.scale(0.7+startAlpha*0.3, 0.7+startAlpha*0.3);
-    wrapText(displayTxt,0,0,880,activeSize+20); ctx.restore(); return;
-  }
-  if(textAnim === "bounce") y += Math.sin(t * 5) * 25;
-  if(textAnim === "blur") { ctx.shadowColor = activeColor; ctx.shadowBlur = (1-startAlpha)*50; }
-
-  wrapText(displayTxt,x,y,880,activeSize+20);
-  ctx.shadowBlur = 0; ctx.globalAlpha = 1;
-}
-
-// LIVE PLAYBACK
-playBtn.onclick = ()=>{
-  playing = !playing;
-  playBtn.textContent = playing ? "pause" : "play_arrow";
-  if(audio) { playing ? (audio.currentTime = time, audio.play()) : audio.pause(); }
-  if(playing){ last = performance.now(); requestAnimationFrame(playLoop); }
-};
-
-function playLoop(n){
-  if(!playing) return;
-  time += (n - last) / 1000;
-  last = n; timeline.value = time; draw(time);
-  if(time >= duration){
-    playing = false; playBtn.textContent = "play_arrow";
-    if(audio) audio.pause(); return;
-  }
-  requestAnimationFrame(playLoop);
-}
-
-/* ============================================================
-   FIXED: DETERMINISTIC EXPORT (PRECISE SECONDS)
-============================================================ */
-async function exportVideo(){
-  // Safety: Stop any current preview
-  playing = false;
-  if(audio) audio.pause();
-  playBtn.textContent = "play_arrow";
-
-  status.textContent = "Preparing High Quality Render...";
-  
-  const fps = 30;
-  const totalFrames = Math.floor(duration * fps);
-  let currentFrame = 0;
-
-  const stream = canvas.captureStream(fps);
-
-  // Capture Audio Track
-  if(audio){
-    const ac = new AudioContext();
-    const src = ac.createMediaElementSource(audio);
-    const dst = ac.createMediaStreamDestination();
-    src.connect(dst);
-    src.connect(ac.destination);
-    dst.stream.getTracks().forEach(t=>stream.addTrack(t));
-    audio.currentTime = 0;
-    audio.play();
-  }
-
-  const recorder = new MediaRecorder(stream,{ 
-    mimeType:"video/webm;codecs=vp9", 
-    videoBitsPerSecond: 20000000 // 20Mbps High Definition
-  });
-
-  const chunks = [];
-  recorder.ondataavailable = e => chunks.push(e.data);
-  recorder.start();
-
-  // THE KEY FIX: Render every frame manually
-  function renderStep() {
-    if(currentFrame <= totalFrames) {
-      const renderTime = currentFrame / fps;
-      draw(renderTime); // Render specific timestamp
-      
-      // Update UI
-      const percent = Math.floor((currentFrame / totalFrames) * 100);
-      status.textContent = `Rendering: ${percent}%`;
-
-      currentFrame++;
-      requestAnimationFrame(renderStep);
-    } else {
-      recorder.stop();
+/**
+ * INITIALIZATION
+ */
+function initParticles() {
+    particles = [];
+    for(let i=0; i<80; i++) {
+        particles.push({
+            x: Math.random() * 1080,
+            y: Math.random() * 1920,
+            s: Math.random() * 3 + 1,
+            v: Math.random() * 0.5 + 0.2
+        });
     }
-  }
-
-  renderStep();
-
-  recorder.onstop = ()=>{
-    if(audio) audio.pause();
-    const blob = new Blob(chunks,{type:"video/webm"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `VoidUpLift_${duration}s.webm`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    status.textContent = "Export Successful!";
-    setTimeout(() => { status.textContent = "Ready to Edit"; }, 3000);
-  };
 }
+initParticles();
+
+// Input Bindings
+document.getElementById('mainText').oninput = e => { state.text = e.target.value; render(currentTime); };
+document.getElementById('animType').onchange = e => state.anim = e.target.value;
+document.getElementById('fontFam').onchange = e => state.font = e.target.value;
+document.getElementById('fontSize').oninput = e => state.size = parseInt(e.target.value);
+document.getElementById('fontColor').oninput = e => state.color = e.target.value;
+document.getElementById('videoDur').oninput = e => { 
+    state.dur = parseInt(e.target.value); 
+    timeline.max = state.dur; 
+    updateTimeDisplay();
+};
+document.getElementById('bgUpload').onchange = e => {
+    const reader = new FileReader();
+    reader.onload = () => { bgImg.src = reader.result; bgImg.onload = () => render(currentTime); };
+    reader.readAsDataURL(e.target.files[0]);
+};
+document.getElementById('audioUpload').onchange = e => {
+    audio = new Audio(URL.createObjectURL(e.target.files[0]));
+};
+
+/**
+ * RENDERING ENGINE
+ */
+function render(t) {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, 1080, 1920);
+
+    // 1. Draw Background Image
+    if(bgImg.src) {
+        let scale = Math.max(1080 / bgImg.width, 1920 / bgImg.height);
+        let w = bgImg.width * scale;
+        let h = bgImg.height * scale;
+        ctx.globalAlpha = Math.min(1, t); // Fade in image
+        ctx.drawImage(bgImg, (1080-w)/2, (1920-h)/2, w, h);
+        ctx.globalAlpha = 1;
+    }
+
+    // 2. Particles
+    if(document.getElementById('showParticles').checked) {
+        ctx.fillStyle = "rgba(255,255,255,0.4)";
+        particles.forEach(p => {
+            let py = (p.y + (t * 50 * p.v)) % 1920;
+            ctx.beginPath();
+            ctx.arc(p.x, py, p.s, 0, Math.PI*2);
+            ctx.fill();
+        });
+    }
+
+    // 3. Vignette
+    if(document.getElementById('showVignette').checked) {
+        let grad = ctx.createRadialGradient(540, 960, 200, 540, 960, 1100);
+        grad.addColorStop(0, "rgba(0,0,0,0)");
+        grad.addColorStop(1, "rgba(0,0,0,0.8)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 1080, 1920);
+    }
+
+    // 4. Text Logic
+    ctx.save();
+    let alpha = 1;
+    let ty = state.y;
+    let tx = state.x;
+
+    // Animation Math
+    if(state.anim === "fade") alpha = Math.min(1, t / 1.5);
+    if(state.anim === "slide") ty = state.y + (Math.max(0, 1.5 - t) * 100);
+    if(state.anim === "zoom") {
+        let s = Math.min(1, t * 2);
+        ctx.translate(540, ty);
+        ctx.scale(s, s);
+        ctx.translate(-540, -ty);
+    }
+
+    ctx.globalAlpha = alpha;
+    ctx.font = `${state.size}px ${state.font}`;
+    ctx.fillStyle = state.color;
+    ctx.textAlign = "left";
+    
+    // FX
+    const glow = document.getElementById('glowSize').value;
+    if(glow > 0) {
+        ctx.shadowColor = state.color;
+        ctx.shadowBlur = glow;
+    }
+
+    const stroke = document.getElementById('strokeSize').value;
+    if(stroke > 0) {
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = stroke;
+        ctx.lineJoin = "round";
+    }
+
+    // Letter Spacing & Wrapping
+    const spacing = document.getElementById('letterSpacing').value;
+    ctx.letterSpacing = `${spacing}px`;
+
+    let content = state.text;
+    if(state.anim === "typewriter") {
+        content = state.text.substring(0, Math.floor(t * state.typeSpeed));
+    }
+
+    wrapText(ctx, content, tx, ty, 850, state.size * 1.2, stroke > 0);
+    ctx.restore();
+
+    // 5. End Credits
+    if(t > state.dur - 2) {
+        ctx.fillStyle = `rgba(0,0,0,${(t - (state.dur - 2)) / 2})`;
+        ctx.fillRect(0, 0, 1080, 1920);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 60px Poppins";
+        ctx.textAlign = "center";
+        ctx.fillText("VOID UPLIFT", 540, 960);
+    }
+}
+
+function wrapText(context, text, x, y, maxWidth, lineHeight, doStroke) {
+    let words = text.split(' ');
+    let line = '';
+    for (let n = 0; n < words.length; n++) {
+        let testLine = line + words[n] + ' ';
+        let metrics = context.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+            if(doStroke) context.strokeText(line, x, y);
+            context.fillText(line, x, y);
+            line = words[n] + ' ';
+            y += lineHeight;
+        } else { line = testLine; }
+    }
+    if(doStroke) context.strokeText(line, x, y);
+    context.fillText(line, x, y);
+}
+
+/**
+ * PLAYBACK SYSTEM
+ */
+document.getElementById('playBtn').onclick = () => {
+    isPlaying = !isPlaying;
+    document.getElementById('playBtn').textContent = isPlaying ? "pause" : "play_arrow";
+    if(isPlaying) {
+        if(audio) { audio.currentTime = currentTime; audio.play(); }
+        lastFrameTime = performance.now();
+        requestAnimationFrame(playbackLoop);
+    } else {
+        if(audio) audio.pause();
+    }
+};
+
+function playbackLoop(now) {
+    if(!isPlaying) return;
+    let dt = (now - lastFrameTime) / 1000;
+    currentTime += dt;
+    lastFrameTime = now;
+
+    if(currentTime >= state.dur) {
+        currentTime = 0;
+        isPlaying = false;
+        document.getElementById('playBtn').textContent = "play_arrow";
+        if(audio) audio.pause();
+    }
+
+    timeline.value = currentTime;
+    updateTimeDisplay();
+    render(currentTime);
+    requestAnimationFrame(playbackLoop);
+}
+
+timeline.oninput = () => {
+    currentTime = parseFloat(timeline.value);
+    render(currentTime);
+    updateTimeDisplay();
+};
+
+function updateTimeDisplay() {
+    const cur = Math.floor(currentTime).toString().padStart(2, '0');
+    const tot = Math.floor(state.dur).toString().padStart(2, '0');
+    document.getElementById('timeDisplay').textContent = `00:${cur} / 00:${tot}`;
+}
+
+/**
+ * EXPORT SYSTEM (DETERMINISTIC)
+ */
+async function startExport() {
+    isPlaying = false;
+    if(audio) audio.pause();
+    
+    const overlay = document.getElementById('exportOverlay');
+    const progText = document.getElementById('exportProgress');
+    overlay.style.display = 'flex';
+
+    const fps = 30;
+    const totalFrames = state.dur * fps;
+    const stream = canvas.captureStream(fps);
+    
+    // Combine Audio
+    if(audio) {
+        const ctx = new AudioContext();
+        const dest = ctx.createMediaStreamDestination();
+        const source = ctx.createMediaElementSource(audio);
+        source.connect(dest);
+        dest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
+        audio.currentTime = 0;
+        audio.play();
+    }
+
+    const recorder = new MediaRecorder(stream, { 
+        mimeType: 'video/webm;codecs=vp9',
+        videoBitsPerSecond: 15000000 
+    });
+
+    const chunks = [];
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.start();
+
+    // Deterministic Loop: Render exactly 1 frame per step
+    for(let f = 0; f <= totalFrames; f++) {
+        let exportTime = f / fps;
+        render(exportTime);
+        
+        // Let UI update
+        progText.textContent = Math.round((f / totalFrames) * 100) + "%";
+        await new Promise(r => requestAnimationFrame(r));
+    }
+
+    recorder.stop();
+    recorder.onstop = () => {
+        if(audio) audio.pause();
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `VoidUpLift_Reel_${state.dur}s.webm`;
+        a.click();
+        overlay.style.display = 'none';
+    };
+}
+
+function tab(el, id) {
+    document.querySelectorAll('.nav-bar span').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById(id).classList.add('active');
+}
+
+// Initial Render
+timeline.max = state.dur;
+render(0);
 </script>
+
 </body>
 </html>
