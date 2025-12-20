@@ -82,16 +82,6 @@ textarea{height:64px}
   font-size:13px;
   color:#9ca3af;
 }
-.download{
-  display:none;
-  margin-top:8px;
-  justify-content:center;
-  gap:6px;
-  color:#22c55e;
-  text-decoration:none;
-  font-weight:600;
-}
-.download span{font-size:20px}
 </style>
 </head>
 
@@ -126,10 +116,6 @@ textarea{height:64px}
   <div class="action-bar">
     <button id="exportBtn" onclick="exportVideo()">Export Video</button>
     <div class="status" id="status">Idle</div>
-    <a id="download" class="download">
-      <span class="material-icons">download</span>
-      Download Video
-    </a>
   </div>
 </div>
 
@@ -241,10 +227,9 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 
-/* EXPORT — MEDIARECORDER (STABLE) */
+/* EXPORT — AUTO DOWNLOAD */
 function exportVideo(){
   exportBtn.disabled=true;
-  download.style.display="none";
   status.textContent="Recording…";
   time=0;
 
@@ -267,11 +252,18 @@ function exportVideo(){
   },33);
 
   recorder.onstop=()=>{
+    status.textContent="Finalizing…";
     const blob=new Blob(chunks,{type:"video/webm"});
-    download.href=URL.createObjectURL(blob);
-    download.download="VoidUpLift_Reel.webm";
-    download.style.display="flex";
-    status.textContent="Export complete";
+    const url=URL.createObjectURL(blob);
+
+    const a=document.createElement("a");
+    a.href=url;
+    a.download="VoidUpLift_Reel.webm";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    status.textContent="Download started";
     exportBtn.disabled=false;
   };
 }
