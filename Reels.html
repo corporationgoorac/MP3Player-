@@ -17,7 +17,23 @@
         --text-dim: #888;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+    /* DISABLE TEXT SELECTION & COPYING */
+    * { 
+        box-sizing: border-box; 
+        margin: 0; 
+        padding: 0; 
+        outline: none; 
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
+
+    /* ENABLE SELECTION ONLY FOR INPUTS */
+    input, textarea, select {
+        -webkit-user-select: text;
+        user-select: text;
+    }
     
     body { 
         background: #000; 
@@ -27,7 +43,6 @@
         overflow: hidden; 
     }
 
-    /* Layout */
     .app-container {
         display: grid;
         grid-template-columns: 1fr;
@@ -35,7 +50,7 @@
         height: 100vh;
     }
 
-    /* 1. Preview Section */
+    /* PREVIEW SECTION */
     .preview-section {
         background: #0a0a0a;
         display: flex;
@@ -52,6 +67,7 @@
         border: 2px solid #333;
         border-radius: 8px;
         overflow: hidden;
+        background: #000;
     }
 
     canvas {
@@ -60,7 +76,6 @@
         aspect-ratio: 9/16;
         display: block;
         cursor: move;
-        background: #000;
     }
 
     .canvas-hint {
@@ -101,7 +116,7 @@
         height: 4px;
     }
 
-    /* 2. Navigation */
+    /* NAVIGATION TABS */
     .nav-tabs {
         display: flex;
         justify-content: space-around;
@@ -112,17 +127,19 @@
 
     .nav-tabs span {
         font-size: 26px;
-        color: #555;
+        color: #444;
         cursor: pointer;
         transition: 0.3s;
+        padding: 5px 15px;
     }
 
     .nav-tabs span.active {
         color: var(--accent);
         text-shadow: 0 0 10px rgba(0,255,136,0.3);
+        border-bottom: 2px solid var(--accent);
     }
 
-    /* 3. Settings Area */
+    /* SETTINGS AREA */
     .settings-area {
         background: var(--bg);
         overflow-y: auto;
@@ -130,11 +147,11 @@
         padding-bottom: 100px;
     }
 
-    .panel { display: none; animation: slideUp 0.3s ease-out; }
+    .panel { display: none; animation: fadeIn 0.3s ease-in-out; }
     .panel.active { display: block; }
 
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(10px); }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
         to { opacity: 1; transform: translateY(0); }
     }
 
@@ -181,11 +198,14 @@
         margin-top: 10px;
         text-transform: uppercase;
         letter-spacing: 1px;
+        transition: 0.3s;
     }
+
+    .btn-main:active { transform: scale(0.98); }
 
     .color-input { height: 40px; padding: 2px; cursor: pointer; }
 
-    /* Export Overlay */
+    /* EXPORT OVERLAY */
     #exportOverlay {
         position: fixed; inset: 0;
         background: rgba(0,0,0,0.95);
@@ -206,19 +226,9 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Credit Screen Customization */
-    .credit-box {
-        border: 1px dashed #444;
-        padding: 10px;
-        border-radius: 6px;
-        margin-top: 10px;
-    }
-
 </style>
 </head>
-<body>
-
-<div id="exportOverlay">
+<body oncontextmenu="return false;"> <div id="exportOverlay">
     <div class="loader"></div>
     <h2 style="margin: 20px 0 5px">VOIDUPLIFT EXPORT</h2>
     <p id="exportProgress" style="color: var(--accent); font-weight: bold;">0%</p>
@@ -237,7 +247,7 @@
             <span id="playBtn" class="material-icons">play_circle_filled</span>
             <input type="range" id="timeline" min="0" step="0.01" value="0">
         </div>
-        <div id="timer" style="font-size: 11px; color: #444; margin-top: 5px">00:00 / 00:00</div>
+        <div id="timer" style="font-size: 11px; color: #444; margin-top: 5px">0.0s / 8.5s</div>
     </section>
 
     <nav class="nav-tabs">
@@ -249,7 +259,6 @@
     </nav>
 
     <main class="settings-area">
-        
         <div id="text-panel" class="panel active">
             <h3>Content Editor</h3>
             <div class="control-group">
@@ -259,10 +268,10 @@
             <div class="control-group">
                 <label>Entrance Animation</label>
                 <select id="animType">
-                    <option value="none">Static</option>
                     <option value="fade">Smooth Fade</option>
                     <option value="slide">Slide From Bottom</option>
                     <option value="typewriter">Typewriter</option>
+                    <option value="none">Static</option>
                 </select>
             </div>
         </div>
@@ -290,7 +299,7 @@
                 </div>
             </div>
             <div class="control-group">
-                <label>Letter Spacing</label>
+                <label>Letter Spacing: <span id="spacingVal">0</span></label>
                 <input type="range" id="letterSpacing" min="-10" max="50" value="0">
             </div>
         </div>
@@ -306,7 +315,7 @@
                 <input type="range" id="imgScale" min="10" max="200" value="80">
             </div>
             <div class="control-group">
-                <label>Audio Track</label>
+                <label>Audio Track (MP3/WAV)</label>
                 <input type="file" id="audioUpload" accept="audio/*">
             </div>
             <div class="control-group">
@@ -329,20 +338,18 @@
                     <option value="2">Aggressive Bounce</option>
                 </select>
             </div>
-            <div class="credit-box">
-                <label>End Credits (VoidUpLift)</label>
+            <div class="control-group">
+                <label>End Credits</label>
                 <input type="text" id="creditName" value="VOIDUPLIFT ENGINE">
-                <p style="font-size: 8px; color:#555; margin-top:5px">Fades in during the last 2 seconds.</p>
             </div>
             <button class="btn-main" onclick="applyMagicTheme()">✨ AI Magic Theme</button>
         </div>
-
     </main>
 </div>
 
 <script>
     /**
-     * ENGINE INITIALIZATION
+     * ENGINE STATE
      */
     const canvas = document.getElementById('mainCanvas');
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -354,10 +361,9 @@
     let currentTime = 0;
     let lastFrameTime = 0;
 
-    // Config Object
     const state = {
         text: "THE UNIVERSE IS WITHIN YOU.",
-        x: 540, y: 960, // Centered start
+        x: 540, y: 960,
         size: 120,
         font: "Anton",
         color: "#ffffff",
@@ -373,7 +379,7 @@
     };
 
     /**
-     * CORE RENDER LOOP
+     * RENDER SYSTEM
      */
     function render(t) {
         ctx.fillStyle = "#000";
@@ -382,19 +388,17 @@
         const totalTime = state.duration + state.endScreenDur;
         const isEndScreen = t > state.duration;
 
-        // Pulse Calculation
         let pulseFactor = 1;
         if(state.pulse > 0 && isPlaying) {
-            pulseFactor = 1 + (Math.sin(t * 10) * (state.pulse * 0.03));
+            pulseFactor = 1 + (Math.sin(t * 12) * (state.pulse * 0.04));
         }
 
         if(!isEndScreen) {
-            // 1. Render Centered Media
+            // Media Layer
             if(overlayImg.src) {
                 const aspect = overlayImg.width / overlayImg.height;
                 const w = 1080 * state.imgScale * pulseFactor;
                 const h = w / aspect;
-                
                 ctx.save();
                 ctx.shadowBlur = 40;
                 ctx.shadowColor = "rgba(0,0,0,0.8)";
@@ -402,16 +406,16 @@
                 ctx.restore();
             }
 
-            // 2. Render Draggable Text
+            // Text Layer
             ctx.save();
             let alpha = 1;
             let drawY = state.y;
 
             if(state.anim === "fade") alpha = Math.min(1, t / 1.5);
-            if(state.anim === "slide") drawY = state.y + (Math.max(0, 1 - t) * 300);
+            if(state.anim === "slide") drawY = state.y + (Math.max(0, 1.2 - t) * 400);
             
             ctx.globalAlpha = alpha;
-            ctx.font = `${state.size * pulseFactor}px ${state.font}`;
+            ctx.font = `${state.size * pulseFactor}px "${state.font}"`;
             ctx.fillStyle = state.color;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
@@ -424,114 +428,142 @@
 
             let displayText = state.text;
             if(state.anim === "typewriter") {
-                displayText = state.text.substring(0, Math.floor(t * 15));
+                displayText = state.text.substring(0, Math.floor(t * 18));
             }
 
             ctx.fillText(displayText, state.x, drawY);
             ctx.restore();
         } else {
-            // --- VOIDUPLIFT END SCREEN ---
-            const et = t - state.duration; // End screen relative time
+            // End Screen
+            const et = t - state.duration;
             ctx.fillStyle = "#050505";
             ctx.fillRect(0,0,1080,1920);
-
             ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
             
-            // Logo
             ctx.globalAlpha = Math.min(1, et * 2);
-            ctx.fillStyle = varColor('--accent');
-            ctx.font = "bold 90px Anton";
-            ctx.fillText("VOIDUPLIFT", 540, 900);
+            ctx.fillStyle = "#00ff88";
+            ctx.font = "bold 95px Anton";
+            ctx.fillText("VOIDUPLIFT", 540, 920);
 
-            // Credit Name
             ctx.globalAlpha = Math.min(1, (et - 0.5) * 2);
             ctx.fillStyle = "#fff";
             ctx.font = "40px Poppins";
-            ctx.letterSpacing = "4px";
-            ctx.fillText(state.credits.toUpperCase(), 540, 1000);
+            ctx.fillText(state.credits.toUpperCase(), 540, 1020);
         }
     }
 
-    // Helper to get CSS variable color
-    function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+    /**
+     * UI & NAVIGATION FIX
+     */
+    function showPanel(el, id) {
+        // Remove all active states
+        document.querySelectorAll('.nav-tabs span').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        
+        // Add active states
+        el.classList.add('active');
+        const target = document.getElementById(id);
+        if(target) target.classList.add('active');
+    }
 
     /**
-     * INTERACTION: DRAG & INPUTS
+     * AI MAGIC THEME
+     */
+    function applyMagicTheme() {
+        const themes = [
+            { font: 'Cinzel', color: '#ffd700', glow: 30, spacing: 5, text: "ETERNAL LUXURY" },
+            { font: 'Pacifico', color: '#ff0077', glow: 15, spacing: 0, text: "Neon Dreams" },
+            { font: 'Anton', color: '#00ff88', glow: 40, spacing: 2, text: "VOID ASCENSION" },
+            { font: 'Oswald', color: '#ffffff', glow: 50, spacing: 15, text: "MINIMALIST" }
+        ];
+
+        const theme = themes[Math.floor(Math.random() * themes.length)];
+        
+        // Update State
+        Object.assign(state, theme);
+
+        // Update UI Elements
+        document.getElementById('fontFam').value = theme.font;
+        document.getElementById('fontColor').value = theme.color;
+        document.getElementById('glowSize').value = theme.glow;
+        document.getElementById('letterSpacing').value = theme.spacing;
+        document.getElementById('mainText').value = theme.text;
+        document.getElementById('spacingVal').innerText = theme.spacing;
+
+        render(currentTime);
+    }
+
+    /**
+     * INPUT BINDING
+     */
+    function setupInputs() {
+        const binds = [
+            ['mainText', 'text'], ['fontSize', 'size', 'sizeVal'],
+            ['fontFam', 'font'], ['fontColor', 'color'],
+            ['vidDur', 'duration'], ['letterSpacing', 'spacing', 'spacingVal'],
+            ['glowSize', 'glow'], ['animType', 'anim'],
+            ['pulseEffect', 'pulse'], ['creditName', 'credits']
+        ];
+
+        binds.forEach(([id, key, valId]) => {
+            const el = document.getElementById(id);
+            el.oninput = () => {
+                state[key] = el.type === 'range' || el.type === 'number' ? parseFloat(el.value) : el.value;
+                if(valId) document.getElementById(valId).innerText = el.value;
+                updateTimelineBounds();
+                render(currentTime);
+            };
+        });
+
+        document.getElementById('imgScale').oninput = (e) => {
+            state.imgScale = e.target.value / 100;
+            document.getElementById('scaleVal').innerText = e.target.value;
+            render(currentTime);
+        };
+
+        document.getElementById('imgUpload').onchange = (e) => {
+            const reader = new FileReader();
+            reader.onload = (f) => { 
+                overlayImg = new Image();
+                overlayImg.src = f.target.result; 
+                overlayImg.onload = () => render(currentTime); 
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        document.getElementById('audioUpload').onchange = (e) => {
+            if(audio) audio.pause();
+            audio = new Audio(URL.createObjectURL(e.target.files[0]));
+        };
+    }
+
+    /**
+     * INTERACTION (DRAG)
      */
     let isMouseDown = false;
     canvas.addEventListener('mousedown', () => isMouseDown = true);
     window.addEventListener('mouseup', () => isMouseDown = false);
-    
     canvas.addEventListener('mousemove', (e) => {
         if(!isMouseDown) return;
         const rect = canvas.getBoundingClientRect();
-        const scaleX = 1080 / rect.width;
-        const scaleY = 1920 / rect.height;
-        state.x = (e.clientX - rect.left) * scaleX;
-        state.y = (e.clientY - rect.top) * scaleY;
+        state.x = (e.clientX - rect.left) * (1080 / rect.width);
+        state.y = (e.clientY - rect.top) * (1920 / rect.height);
         render(currentTime);
     });
 
-    // Binding Inputs
-    const bind = (id, key, labelId = null) => {
-        const el = document.getElementById(id);
-        el.oninput = () => {
-            state[key] = el.type === 'number' || el.type === 'range' ? parseFloat(el.value) : el.value;
-            if(labelId) document.getElementById(labelId).innerText = el.value;
-            updateTimeline();
-            render(currentTime);
-        };
-    };
-
-    bind('mainText', 'text');
-    bind('fontSize', 'size', 'sizeVal');
-    bind('fontFam', 'font');
-    bind('fontColor', 'color');
-    bind('imgScale', 'imgScale', 'scaleVal', (v) => v/100);
-    bind('vidDur', 'duration');
-    bind('letterSpacing', 'spacing');
-    bind('glowSize', 'glow');
-    bind('animType', 'anim');
-    bind('pulseEffect', 'pulse');
-    bind('creditName', 'credits');
-
-    // Override imgScale special logic
-    document.getElementById('imgScale').oninput = (e) => {
-        state.imgScale = e.target.value / 100;
-        document.getElementById('scaleVal').innerText = e.target.value;
-        render(currentTime);
-    };
-
-    document.getElementById('imgUpload').onchange = (e) => {
-        const reader = new FileReader();
-        reader.onload = (f) => { overlayImg.src = f.target.result; overlayImg.onload = () => render(currentTime); };
-        reader.readAsDataURL(e.target.files[0]);
-    };
-
-    document.getElementById('audioUpload').onchange = (e) => {
-        audio = new Audio(URL.createObjectURL(e.target.files[0]));
-    };
-
     /**
-     * PLAYBACK & FULLSCREEN
+     * PLAYBACK
      */
     document.getElementById('playBtn').onclick = () => {
         isPlaying = !isPlaying;
+        document.getElementById('playBtn').innerText = isPlaying ? "pause_circle_filled" : "play_circle_filled";
         
         if(isPlaying) {
-            // FULLSCREEN LOGIC
-            const wrapper = document.getElementById('canvasWrapper');
-            if (wrapper.requestFullscreen) wrapper.requestFullscreen();
-            
             if(audio) { audio.currentTime = currentTime; audio.play(); }
-            document.getElementById('playBtn').innerText = "pause_circle_filled";
             lastFrameTime = performance.now();
             requestAnimationFrame(playbackLoop);
         } else {
-            document.getElementById('playBtn').innerText = "play_circle_filled";
             if(audio) audio.pause();
-            if (document.fullscreenElement) document.exitFullscreen();
         }
     };
 
@@ -546,7 +578,7 @@
             currentTime = 0;
             isPlaying = false;
             document.getElementById('playBtn').innerText = "play_circle_filled";
-            if(document.fullscreenElement) document.exitFullscreen();
+            if(audio) audio.pause();
         }
 
         timeline.value = currentTime;
@@ -555,7 +587,7 @@
         requestAnimationFrame(playbackLoop);
     }
 
-    function updateTimeline() {
+    function updateTimelineBounds() {
         timeline.max = state.duration + state.endScreenDur;
         updateTimerLabel();
     }
@@ -576,45 +608,12 @@
     async function startExport() {
         isPlaying = false;
         const overlay = document.getElementById('exportOverlay');
-        const prog = document.getElementById('exportProgress');
         overlay.style.display = 'flex';
 
         const fps = 30;
-        const totalTime = state.duration + state.endScreenDur;
-        const totalFrames = totalTime * fps;
-        
+        const totalFrames = (state.duration + state.endScreenDur) * fps;
         const stream = canvas.captureStream(fps);
-        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 12000000 });
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 8000000 });
         const chunks = [];
 
-        recorder.ondataavailable = e => chunks.push(e.data);
-        recorder.onstop = () => {
-            const blob = new Blob(chunks, { type: 'video/webm' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `VoidUpLift_Pro_${Date.now()}.webm`;
-            link.click();
-            overlay.style.display = 'none';
-        };
-
-        recorder.start();
-        for(let i=0; i <= totalFrames; i++) {
-            render(i / fps);
-            prog.innerText = Math.round((i / totalFrames) * 100) + "%";
-            await new Promise(r => requestAnimationFrame(r));
-        }
-        recorder.stop();
-    }
-
-    /**
-     * UI UTILS
-     */
-    function showPanel(el, id) {
-        document.querySelectorAll('.nav-tabs span').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById(id).classList.add('active');
-    }
-
-    function applyMagicTheme() {
-       
+        recorder.ondataavailable = e => chunks.push
