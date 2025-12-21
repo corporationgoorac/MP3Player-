@@ -3,463 +3,618 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VoidUpLift Reels Editor Ultra</title>
+<title>VoidUpLift Pro - High Performance Reel Editor</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Anton&family=Bebas+Neue&family=Playfair+Display&family=Oswald&family=Pacifico&family=Cinzel&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&family=Anton&family=Bebas+Neue&family=Cinzel:wght@700&family=Oswald:wght@500&family=Pacifico&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <style>
-:root { --accent: #00ff88; --bg: #050505; --panel: #111; }
-*{ box-sizing:border-box; margin:0; padding:0; }
-body{ background:#000; color:#fff; font-family:'Poppins', sans-serif; height:100vh; overflow:hidden; }
+    :root { 
+        --accent: #00ff88; 
+        --bg: #050505; 
+        --panel: #111; 
+        --border: #222;
+        --text-dim: #888;
+    }
 
-.app{ display:grid; grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; height:100vh; }
+    * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+    
+    body { 
+        background: #000; 
+        color: #fff; 
+        font-family: 'Poppins', sans-serif; 
+        height: 100vh; 
+        overflow: hidden; 
+    }
 
-/* Preview Area */
-.preview-section { background: #0a0a0a; display: flex; flex-direction: column; align-items: center; padding: 15px; border-bottom: 1px solid #222; }
-canvas{ 
-    width: 45vw; max-width: 210px; aspect-ratio: 9/16; 
-    border-radius: 12px; border: 2px solid #333; background: #000;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-}
-.playback-controls { display: flex; align-items: center; gap: 15px; width: 100%; max-width: 400px; margin-top: 10px; }
-#timeline { flex: 1; accent-color: var(--accent); cursor: pointer; }
-.play-btn { font-size: 35px; cursor: pointer; color: var(--accent); transition: transform 0.2s; }
-.play-btn:hover { transform: scale(1.1); }
+    /* Layout */
+    .app-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr;
+        height: 100vh;
+    }
 
-/* Navigation */
-.nav-bar { display: flex; justify-content: space-around; padding: 12px; background: var(--bg); border-bottom: 1px solid #222; }
-.nav-bar span { font-size: 28px; cursor: pointer; color: #666; transition: 0.3s; }
-.nav-bar span.active { color: var(--accent); }
+    /* 1. Preview Section */
+    .preview-section {
+        background: #0a0a0a;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+    }
 
-/* Controls */
-.settings-area { background: var(--bg); overflow-y: auto; padding: 20px; }
-.panel { display: none; animation: fadeIn 0.3s ease; }
-.panel.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    #canvasWrapper {
+        position: relative;
+        box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        border: 2px solid #333;
+        border-radius: 8px;
+        overflow: hidden;
+    }
 
-/* Form Elements */
-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-bottom: 8px; margin-top: 15px; }
-textarea, select, input[type="text"], input[type="number"] { 
-    width: 100%; background: var(--panel); border: 1px solid #333; color: #fff; 
-    padding: 12px; border-radius: 8px; font-family: inherit;
-}
-textarea { height: 80px; resize: none; border-left: 3px solid var(--accent); }
-input[type="range"] { width: 100%; accent-color: var(--accent); height: 6px; }
+    canvas {
+        width: 42vw; 
+        max-width: 190px; 
+        aspect-ratio: 9/16;
+        display: block;
+        cursor: move;
+        background: #000;
+    }
 
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.checkbox-card { 
-    background: var(--panel); padding: 12px; border-radius: 8px; 
-    display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid #222;
-}
+    .canvas-hint {
+        position: absolute;
+        bottom: 5px;
+        width: 100%;
+        text-align: center;
+        font-size: 8px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        pointer-events: none;
+        opacity: 0.6;
+    }
 
-/* Export Status Overlay */
-#exportOverlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.9); 
-    display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
-}
-.loader { width: 100px; height: 100px; border: 5px solid #222; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+    .playback-bar {
+        width: 100%;
+        max-width: 400px;
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    #playBtn { 
+        font-size: 38px; 
+        color: var(--accent); 
+        cursor: pointer; 
+        transition: 0.2s; 
+    }
+    
+    #playBtn:hover { transform: scale(1.1); }
+
+    input[type="range"] {
+        flex: 1;
+        accent-color: var(--accent);
+        cursor: pointer;
+        height: 4px;
+    }
+
+    /* 2. Navigation */
+    .nav-tabs {
+        display: flex;
+        justify-content: space-around;
+        background: var(--bg);
+        padding: 15px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .nav-tabs span {
+        font-size: 26px;
+        color: #555;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .nav-tabs span.active {
+        color: var(--accent);
+        text-shadow: 0 0 10px rgba(0,255,136,0.3);
+    }
+
+    /* 3. Settings Area */
+    .settings-area {
+        background: var(--bg);
+        overflow-y: auto;
+        padding: 20px;
+        padding-bottom: 100px;
+    }
+
+    .panel { display: none; animation: slideUp 0.3s ease-out; }
+    .panel.active { display: block; }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    h3 { font-size: 14px; margin-bottom: 15px; color: var(--accent); text-transform: uppercase; }
+
+    .control-group { margin-bottom: 20px; }
+    
+    label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 8px;
+        letter-spacing: 1px;
+    }
+
+    label span { color: var(--accent); }
+
+    input[type="text"], textarea, select, input[type="number"] {
+        width: 100%;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        color: #fff;
+        padding: 12px;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 13px;
+    }
+
+    textarea { height: 70px; resize: none; border-left: 3px solid var(--accent); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .btn-main {
+        background: var(--accent);
+        color: #000;
+        border: none;
+        padding: 16px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .color-input { height: 40px; padding: 2px; cursor: pointer; }
+
+    /* Export Overlay */
+    #exportOverlay {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.95);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .loader {
+        width: 60px; height: 60px;
+        border: 4px solid #222;
+        border-top: 4px solid var(--accent);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Credit Screen Customization */
+    .credit-box {
+        border: 1px dashed #444;
+        padding: 10px;
+        border-radius: 6px;
+        margin-top: 10px;
+    }
+
 </style>
 </head>
 <body>
 
 <div id="exportOverlay">
     <div class="loader"></div>
-    <h2 style="margin-top:20px" id="exportStatus">Rendering...</h2>
-    <p id="exportProgress">0%</p>
+    <h2 style="margin: 20px 0 5px">VOIDUPLIFT EXPORT</h2>
+    <p id="exportProgress" style="color: var(--accent); font-weight: bold;">0%</p>
+    <p style="font-size: 10px; color: #666; margin-top: 10px">DO NOT CLOSE TAB WHILE RENDERING</p>
 </div>
 
-<div class="app">
-    <div class="preview-section">
-        <canvas id="mainCanvas" width="1080" height="1920"></canvas>
-        <div class="playback-controls">
-            <span id="playBtn" class="material-icons play-btn">play_arrow</span>
-            <input type="range" id="timeline" min="0" value="0" step="0.01">
+<div class="app-container">
+    
+    <section class="preview-section">
+        <div id="canvasWrapper">
+            <canvas id="mainCanvas" width="1080" height="1920"></canvas>
+            <div class="canvas-hint">Drag Text to Reposition</div>
         </div>
-        <div id="timeDisplay" style="font-size:12px; color:#555; margin-top:5px">00:00 / 00:10</div>
-    </div>
+        
+        <div class="playback-bar">
+            <span id="playBtn" class="material-icons">play_circle_filled</span>
+            <input type="range" id="timeline" min="0" step="0.01" value="0">
+        </div>
+        <div id="timer" style="font-size: 11px; color: #444; margin-top: 5px">00:00 / 00:00</div>
+    </section>
 
-    <div class="nav-bar">
-        <span class="material-icons active" onclick="tab(this, 'textTab')">notes</span>
-        <span class="material-icons" onclick="tab(this, 'styleTab')">palette</span>
-        <span class="material-icons" onclick="tab(this, 'fxTab')">auto_fix_high</span>
-        <span class="material-icons" onclick="tab(this, 'mediaTab')">perm_media</span>
-        <span class="material-icons" onclick="startExport()" style="color:var(--accent)">download</span>
-    </div>
+    <nav class="nav-tabs">
+        <span class="material-icons active" onclick="showPanel(this, 'text-panel')">title</span>
+        <span class="material-icons" onclick="showPanel(this, 'style-panel')">palette</span>
+        <span class="material-icons" onclick="showPanel(this, 'media-panel')">photo_library</span>
+        <span class="material-icons" onclick="showPanel(this, 'fx-panel')">auto_awesome</span>
+        <span class="material-icons" onclick="startExport()" style="color:var(--accent)">cloud_download</span>
+    </nav>
 
-    <div class="settings-area">
-        <div id="textTab" class="panel active">
-            <label>Message Content</label>
-            <textarea id="mainText" placeholder="Enter your reel quote here...">Design is intelligence made visible.</textarea>
-            
-            <div class="grid-2">
-                <div>
-                    <label>Text Animation</label>
-                    <select id="animType">
-                        <option value="none">Static</option>
-                        <option value="fade">Smooth Fade</option>
-                        <option value="slide">Slide In</option>
-                        <option value="zoom">Elastic Zoom</option>
-                        <option value="typewriter">Typewriter</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Typing Speed</label>
-                    <input type="range" id="typeSpeed" min="5" max="50" value="20">
-                </div>
+    <main class="settings-area">
+        
+        <div id="text-panel" class="panel active">
+            <h3>Content Editor</h3>
+            <div class="control-group">
+                <label>Main Headline</label>
+                <textarea id="mainText">THE UNIVERSE IS WITHIN YOU.</textarea>
+            </div>
+            <div class="control-group">
+                <label>Entrance Animation</label>
+                <select id="animType">
+                    <option value="none">Static</option>
+                    <option value="fade">Smooth Fade</option>
+                    <option value="slide">Slide From Bottom</option>
+                    <option value="typewriter">Typewriter</option>
+                </select>
             </div>
         </div>
 
-        <div id="styleTab" class="panel">
-            <label>Typography</label>
-            <select id="fontFam">
-                <option value="Poppins">Poppins (Modern)</option>
-                <option value="Anton">Anton (Heavy)</option>
-                <option value="Bebas Neue">Bebas (Bold)</option>
-                <option value="Pacifico">Pacifico (Handwritten)</option>
-                <option value="Cinzel">Cinzel (Luxury)</option>
-            </select>
-
+        <div id="style-panel" class="panel">
+            <h3>Visual Style</h3>
+            <div class="control-group">
+                <label>Typography</label>
+                <select id="fontFam">
+                    <option value="Anton">Anton (Heavy)</option>
+                    <option value="Bebas Neue">Bebas (Clean)</option>
+                    <option value="Cinzel">Cinzel (Luxury)</option>
+                    <option value="Pacifico">Pacifico (Script)</option>
+                    <option value="Oswald">Oswald (Modern)</option>
+                </select>
+            </div>
             <div class="grid-2">
-                <div>
-                    <label>Size</label>
-                    <input type="range" id="fontSize" min="40" max="250" value="80">
+                <div class="control-group">
+                    <label>Size: <span id="sizeVal">120</span>px</label>
+                    <input type="range" id="fontSize" min="30" max="400" value="120">
                 </div>
-                <div>
-                    <label>Color</label>
-                    <input type="color" id="fontColor" value="#ffffff">
+                <div class="control-group">
+                    <label>Text Color</label>
+                    <input type="color" id="fontColor" class="color-input" value="#ffffff">
                 </div>
             </div>
-
-            <label>Letter Spacing</label>
-            <input type="range" id="letterSpacing" min="-10" max="50" value="0">
-        </div>
-
-        <div id="fxTab" class="panel">
-            <div class="grid-2">
-                <label class="checkbox-card">
-                    <input type="checkbox" id="showParticles" checked> Particles
-                </label>
-                <label class="checkbox-card">
-                    <input type="checkbox" id="showVignette" checked> Vignette
-                </label>
+            <div class="control-group">
+                <label>Letter Spacing</label>
+                <input type="range" id="letterSpacing" min="-10" max="50" value="0">
             </div>
-
-            <label>Neon Glow Strength</label>
-            <input type="range" id="glowSize" min="0" max="50" value="0">
-            
-            <label>Text Outline (Stroke)</label>
-            <input type="range" id="strokeSize" min="0" max="20" value="0">
         </div>
 
-        <div id="mediaTab" class="panel">
-            <label>Background Image</label>
-            <input type="file" id="bgUpload" accept="image/*">
-            
-            <label>Background Music</label>
-            <input type="file" id="audioUpload" accept="audio/*">
-
-            <label>Video Duration (Seconds)</label>
-            <input type="number" id="videoDur" value="10" min="1" max="60">
+        <div id="media-panel" class="panel">
+            <h3>Media & Layers</h3>
+            <div class="control-group">
+                <label>Centered Image Overlay</label>
+                <input type="file" id="imgUpload" accept="image/*">
+            </div>
+            <div class="control-group">
+                <label>Image Scale: <span id="scaleVal">80</span>%</label>
+                <input type="range" id="imgScale" min="10" max="200" value="80">
+            </div>
+            <div class="control-group">
+                <label>Audio Track</label>
+                <input type="file" id="audioUpload" accept="audio/*">
+            </div>
+            <div class="control-group">
+                <label>Video Duration (Seconds)</label>
+                <input type="number" id="vidDur" value="6" min="1" max="60">
+            </div>
         </div>
-    </div>
+
+        <div id="fx-panel" class="panel">
+            <h3>Creative Effects</h3>
+            <div class="control-group">
+                <label>Neon Glow Strength</label>
+                <input type="range" id="glowSize" min="0" max="60" value="20">
+            </div>
+            <div class="control-group">
+                <label>Beat-Sync Pulse</label>
+                <select id="pulseEffect">
+                    <option value="0">Disabled</option>
+                    <option value="1">Soft Pulse</option>
+                    <option value="2">Aggressive Bounce</option>
+                </select>
+            </div>
+            <div class="credit-box">
+                <label>End Credits (VoidUpLift)</label>
+                <input type="text" id="creditName" value="VOIDUPLIFT ENGINE">
+                <p style="font-size: 8px; color:#555; margin-top:5px">Fades in during the last 2 seconds.</p>
+            </div>
+            <button class="btn-main" onclick="applyMagicTheme()">✨ AI Magic Theme</button>
+        </div>
+
+    </main>
 </div>
 
 <script>
-/** * CORE STATE 
- */
-const canvas = document.getElementById('mainCanvas');
-const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
-const timeline = document.getElementById('timeline');
+    /**
+     * ENGINE INITIALIZATION
+     */
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const timeline = document.getElementById('timeline');
+    
+    let overlayImg = new Image();
+    let audio = null;
+    let isPlaying = false;
+    let currentTime = 0;
+    let lastFrameTime = 0;
 
-let bgImg = new Image();
-let audio = null;
-let particles = [];
-let isPlaying = false;
-let currentTime = 0;
-let lastFrameTime = 0;
+    // Config Object
+    const state = {
+        text: "THE UNIVERSE IS WITHIN YOU.",
+        x: 540, y: 960, // Centered start
+        size: 120,
+        font: "Anton",
+        color: "#ffffff",
+        glow: 20,
+        imgScale: 0.8,
+        duration: 6,
+        endScreenDur: 2.5,
+        spacing: 0,
+        anim: "fade",
+        pulse: 0,
+        credits: "VOIDUPLIFT ENGINE",
+        isDragging: false
+    };
 
-// Config state
-const state = {
-    text: "Design is intelligence made visible.",
-    font: "Poppins",
-    size: 80,
-    color: "#ffffff",
-    anim: "fade",
-    typeSpeed: 20,
-    dur: 10,
-    letterSpacing: 0,
-    glow: 0,
-    stroke: 0,
-    particles: true,
-    vignette: true,
-    x: 150, y: 500
-};
-
-/**
- * INITIALIZATION
- */
-function initParticles() {
-    particles = [];
-    for(let i=0; i<80; i++) {
-        particles.push({
-            x: Math.random() * 1080,
-            y: Math.random() * 1920,
-            s: Math.random() * 3 + 1,
-            v: Math.random() * 0.5 + 0.2
-        });
-    }
-}
-initParticles();
-
-// Input Bindings
-document.getElementById('mainText').oninput = e => { state.text = e.target.value; render(currentTime); };
-document.getElementById('animType').onchange = e => state.anim = e.target.value;
-document.getElementById('fontFam').onchange = e => state.font = e.target.value;
-document.getElementById('fontSize').oninput = e => state.size = parseInt(e.target.value);
-document.getElementById('fontColor').oninput = e => state.color = e.target.value;
-document.getElementById('videoDur').oninput = e => { 
-    state.dur = parseInt(e.target.value); 
-    timeline.max = state.dur; 
-    updateTimeDisplay();
-};
-document.getElementById('bgUpload').onchange = e => {
-    const reader = new FileReader();
-    reader.onload = () => { bgImg.src = reader.result; bgImg.onload = () => render(currentTime); };
-    reader.readAsDataURL(e.target.files[0]);
-};
-document.getElementById('audioUpload').onchange = e => {
-    audio = new Audio(URL.createObjectURL(e.target.files[0]));
-};
-
-/**
- * RENDERING ENGINE
- */
-function render(t) {
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, 1080, 1920);
-
-    // 1. Draw Background Image
-    if(bgImg.src) {
-        let scale = Math.max(1080 / bgImg.width, 1920 / bgImg.height);
-        let w = bgImg.width * scale;
-        let h = bgImg.height * scale;
-        ctx.globalAlpha = Math.min(1, t); // Fade in image
-        ctx.drawImage(bgImg, (1080-w)/2, (1920-h)/2, w, h);
-        ctx.globalAlpha = 1;
-    }
-
-    // 2. Particles
-    if(document.getElementById('showParticles').checked) {
-        ctx.fillStyle = "rgba(255,255,255,0.4)";
-        particles.forEach(p => {
-            let py = (p.y + (t * 50 * p.v)) % 1920;
-            ctx.beginPath();
-            ctx.arc(p.x, py, p.s, 0, Math.PI*2);
-            ctx.fill();
-        });
-    }
-
-    // 3. Vignette
-    if(document.getElementById('showVignette').checked) {
-        let grad = ctx.createRadialGradient(540, 960, 200, 540, 960, 1100);
-        grad.addColorStop(0, "rgba(0,0,0,0)");
-        grad.addColorStop(1, "rgba(0,0,0,0.8)");
-        ctx.fillStyle = grad;
+    /**
+     * CORE RENDER LOOP
+     */
+    function render(t) {
+        ctx.fillStyle = "#000";
         ctx.fillRect(0, 0, 1080, 1920);
+
+        const totalTime = state.duration + state.endScreenDur;
+        const isEndScreen = t > state.duration;
+
+        // Pulse Calculation
+        let pulseFactor = 1;
+        if(state.pulse > 0 && isPlaying) {
+            pulseFactor = 1 + (Math.sin(t * 10) * (state.pulse * 0.03));
+        }
+
+        if(!isEndScreen) {
+            // 1. Render Centered Media
+            if(overlayImg.src) {
+                const aspect = overlayImg.width / overlayImg.height;
+                const w = 1080 * state.imgScale * pulseFactor;
+                const h = w / aspect;
+                
+                ctx.save();
+                ctx.shadowBlur = 40;
+                ctx.shadowColor = "rgba(0,0,0,0.8)";
+                ctx.drawImage(overlayImg, (1080-w)/2, (1920-h)/2, w, h);
+                ctx.restore();
+            }
+
+            // 2. Render Draggable Text
+            ctx.save();
+            let alpha = 1;
+            let drawY = state.y;
+
+            if(state.anim === "fade") alpha = Math.min(1, t / 1.5);
+            if(state.anim === "slide") drawY = state.y + (Math.max(0, 1 - t) * 300);
+            
+            ctx.globalAlpha = alpha;
+            ctx.font = `${state.size * pulseFactor}px ${state.font}`;
+            ctx.fillStyle = state.color;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.letterSpacing = `${state.spacing}px`;
+
+            if(state.glow > 0) {
+                ctx.shadowColor = state.color;
+                ctx.shadowBlur = state.glow;
+            }
+
+            let displayText = state.text;
+            if(state.anim === "typewriter") {
+                displayText = state.text.substring(0, Math.floor(t * 15));
+            }
+
+            ctx.fillText(displayText, state.x, drawY);
+            ctx.restore();
+        } else {
+            // --- VOIDUPLIFT END SCREEN ---
+            const et = t - state.duration; // End screen relative time
+            ctx.fillStyle = "#050505";
+            ctx.fillRect(0,0,1080,1920);
+
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            
+            // Logo
+            ctx.globalAlpha = Math.min(1, et * 2);
+            ctx.fillStyle = varColor('--accent');
+            ctx.font = "bold 90px Anton";
+            ctx.fillText("VOIDUPLIFT", 540, 900);
+
+            // Credit Name
+            ctx.globalAlpha = Math.min(1, (et - 0.5) * 2);
+            ctx.fillStyle = "#fff";
+            ctx.font = "40px Poppins";
+            ctx.letterSpacing = "4px";
+            ctx.fillText(state.credits.toUpperCase(), 540, 1000);
+        }
     }
 
-    // 4. Text Logic
-    ctx.save();
-    let alpha = 1;
-    let ty = state.y;
-    let tx = state.x;
+    // Helper to get CSS variable color
+    function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
-    // Animation Math
-    if(state.anim === "fade") alpha = Math.min(1, t / 1.5);
-    if(state.anim === "slide") ty = state.y + (Math.max(0, 1.5 - t) * 100);
-    if(state.anim === "zoom") {
-        let s = Math.min(1, t * 2);
-        ctx.translate(540, ty);
-        ctx.scale(s, s);
-        ctx.translate(-540, -ty);
-    }
-
-    ctx.globalAlpha = alpha;
-    ctx.font = `${state.size}px ${state.font}`;
-    ctx.fillStyle = state.color;
-    ctx.textAlign = "left";
+    /**
+     * INTERACTION: DRAG & INPUTS
+     */
+    let isMouseDown = false;
+    canvas.addEventListener('mousedown', () => isMouseDown = true);
+    window.addEventListener('mouseup', () => isMouseDown = false);
     
-    // FX
-    const glow = document.getElementById('glowSize').value;
-    if(glow > 0) {
-        ctx.shadowColor = state.color;
-        ctx.shadowBlur = glow;
-    }
-
-    const stroke = document.getElementById('strokeSize').value;
-    if(stroke > 0) {
-        ctx.strokeStyle = "#000";
-        ctx.lineWidth = stroke;
-        ctx.lineJoin = "round";
-    }
-
-    // Letter Spacing & Wrapping
-    const spacing = document.getElementById('letterSpacing').value;
-    ctx.letterSpacing = `${spacing}px`;
-
-    let content = state.text;
-    if(state.anim === "typewriter") {
-        content = state.text.substring(0, Math.floor(t * state.typeSpeed));
-    }
-
-    wrapText(ctx, content, tx, ty, 850, state.size * 1.2, stroke > 0);
-    ctx.restore();
-
-    // 5. End Credits
-    if(t > state.dur - 2) {
-        ctx.fillStyle = `rgba(0,0,0,${(t - (state.dur - 2)) / 2})`;
-        ctx.fillRect(0, 0, 1080, 1920);
-        ctx.fillStyle = "#fff";
-        ctx.font = "bold 60px Poppins";
-        ctx.textAlign = "center";
-        ctx.fillText("VOID UPLIFT", 540, 960);
-    }
-}
-
-function wrapText(context, text, x, y, maxWidth, lineHeight, doStroke) {
-    let words = text.split(' ');
-    let line = '';
-    for (let n = 0; n < words.length; n++) {
-        let testLine = line + words[n] + ' ';
-        let metrics = context.measureText(testLine);
-        if (metrics.width > maxWidth && n > 0) {
-            if(doStroke) context.strokeText(line, x, y);
-            context.fillText(line, x, y);
-            line = words[n] + ' ';
-            y += lineHeight;
-        } else { line = testLine; }
-    }
-    if(doStroke) context.strokeText(line, x, y);
-    context.fillText(line, x, y);
-}
-
-/**
- * PLAYBACK SYSTEM
- */
-document.getElementById('playBtn').onclick = () => {
-    isPlaying = !isPlaying;
-    document.getElementById('playBtn').textContent = isPlaying ? "pause" : "play_arrow";
-    if(isPlaying) {
-        if(audio) { audio.currentTime = currentTime; audio.play(); }
-        lastFrameTime = performance.now();
-        requestAnimationFrame(playbackLoop);
-    } else {
-        if(audio) audio.pause();
-    }
-};
-
-function playbackLoop(now) {
-    if(!isPlaying) return;
-    let dt = (now - lastFrameTime) / 1000;
-    currentTime += dt;
-    lastFrameTime = now;
-
-    if(currentTime >= state.dur) {
-        currentTime = 0;
-        isPlaying = false;
-        document.getElementById('playBtn').textContent = "play_arrow";
-        if(audio) audio.pause();
-    }
-
-    timeline.value = currentTime;
-    updateTimeDisplay();
-    render(currentTime);
-    requestAnimationFrame(playbackLoop);
-}
-
-timeline.oninput = () => {
-    currentTime = parseFloat(timeline.value);
-    render(currentTime);
-    updateTimeDisplay();
-};
-
-function updateTimeDisplay() {
-    const cur = Math.floor(currentTime).toString().padStart(2, '0');
-    const tot = Math.floor(state.dur).toString().padStart(2, '0');
-    document.getElementById('timeDisplay').textContent = `00:${cur} / 00:${tot}`;
-}
-
-/**
- * EXPORT SYSTEM (DETERMINISTIC)
- */
-async function startExport() {
-    isPlaying = false;
-    if(audio) audio.pause();
-    
-    const overlay = document.getElementById('exportOverlay');
-    const progText = document.getElementById('exportProgress');
-    overlay.style.display = 'flex';
-
-    const fps = 30;
-    const totalFrames = state.dur * fps;
-    const stream = canvas.captureStream(fps);
-    
-    // Combine Audio
-    if(audio) {
-        const ctx = new AudioContext();
-        const dest = ctx.createMediaStreamDestination();
-        const source = ctx.createMediaElementSource(audio);
-        source.connect(dest);
-        dest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
-        audio.currentTime = 0;
-        audio.play();
-    }
-
-    const recorder = new MediaRecorder(stream, { 
-        mimeType: 'video/webm;codecs=vp9',
-        videoBitsPerSecond: 15000000 
+    canvas.addEventListener('mousemove', (e) => {
+        if(!isMouseDown) return;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = 1080 / rect.width;
+        const scaleY = 1920 / rect.height;
+        state.x = (e.clientX - rect.left) * scaleX;
+        state.y = (e.clientY - rect.top) * scaleY;
+        render(currentTime);
     });
 
-    const chunks = [];
-    recorder.ondataavailable = e => chunks.push(e.data);
-    recorder.start();
+    // Binding Inputs
+    const bind = (id, key, labelId = null) => {
+        const el = document.getElementById(id);
+        el.oninput = () => {
+            state[key] = el.type === 'number' || el.type === 'range' ? parseFloat(el.value) : el.value;
+            if(labelId) document.getElementById(labelId).innerText = el.value;
+            updateTimeline();
+            render(currentTime);
+        };
+    };
 
-    // Deterministic Loop: Render exactly 1 frame per step
-    for(let f = 0; f <= totalFrames; f++) {
-        let exportTime = f / fps;
-        render(exportTime);
+    bind('mainText', 'text');
+    bind('fontSize', 'size', 'sizeVal');
+    bind('fontFam', 'font');
+    bind('fontColor', 'color');
+    bind('imgScale', 'imgScale', 'scaleVal', (v) => v/100);
+    bind('vidDur', 'duration');
+    bind('letterSpacing', 'spacing');
+    bind('glowSize', 'glow');
+    bind('animType', 'anim');
+    bind('pulseEffect', 'pulse');
+    bind('creditName', 'credits');
+
+    // Override imgScale special logic
+    document.getElementById('imgScale').oninput = (e) => {
+        state.imgScale = e.target.value / 100;
+        document.getElementById('scaleVal').innerText = e.target.value;
+        render(currentTime);
+    };
+
+    document.getElementById('imgUpload').onchange = (e) => {
+        const reader = new FileReader();
+        reader.onload = (f) => { overlayImg.src = f.target.result; overlayImg.onload = () => render(currentTime); };
+        reader.readAsDataURL(e.target.files[0]);
+    };
+
+    document.getElementById('audioUpload').onchange = (e) => {
+        audio = new Audio(URL.createObjectURL(e.target.files[0]));
+    };
+
+    /**
+     * PLAYBACK & FULLSCREEN
+     */
+    document.getElementById('playBtn').onclick = () => {
+        isPlaying = !isPlaying;
         
-        // Let UI update
-        progText.textContent = Math.round((f / totalFrames) * 100) + "%";
-        await new Promise(r => requestAnimationFrame(r));
+        if(isPlaying) {
+            // FULLSCREEN LOGIC
+            const wrapper = document.getElementById('canvasWrapper');
+            if (wrapper.requestFullscreen) wrapper.requestFullscreen();
+            
+            if(audio) { audio.currentTime = currentTime; audio.play(); }
+            document.getElementById('playBtn').innerText = "pause_circle_filled";
+            lastFrameTime = performance.now();
+            requestAnimationFrame(playbackLoop);
+        } else {
+            document.getElementById('playBtn').innerText = "play_circle_filled";
+            if(audio) audio.pause();
+            if (document.fullscreenElement) document.exitFullscreen();
+        }
+    };
+
+    function playbackLoop(now) {
+        if(!isPlaying) return;
+        let dt = (now - lastFrameTime) / 1000;
+        currentTime += dt;
+        lastFrameTime = now;
+
+        const total = state.duration + state.endScreenDur;
+        if(currentTime >= total) {
+            currentTime = 0;
+            isPlaying = false;
+            document.getElementById('playBtn').innerText = "play_circle_filled";
+            if(document.fullscreenElement) document.exitFullscreen();
+        }
+
+        timeline.value = currentTime;
+        updateTimerLabel();
+        render(currentTime);
+        requestAnimationFrame(playbackLoop);
     }
 
-    recorder.stop();
-    recorder.onstop = () => {
-        if(audio) audio.pause();
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `VoidUpLift_Reel_${state.dur}s.webm`;
-        a.click();
-        overlay.style.display = 'none';
+    function updateTimeline() {
+        timeline.max = state.duration + state.endScreenDur;
+        updateTimerLabel();
+    }
+
+    function updateTimerLabel() {
+        const total = state.duration + state.endScreenDur;
+        document.getElementById('timer').innerText = `${currentTime.toFixed(1)}s / ${total.toFixed(1)}s`;
+    }
+
+    timeline.oninput = () => {
+        currentTime = parseFloat(timeline.value);
+        render(currentTime);
     };
-}
 
-function tab(el, id) {
-    document.querySelectorAll('.nav-bar span').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById(id).classList.add('active');
-}
+    /**
+     * EXPORT SYSTEM
+     */
+    async function startExport() {
+        isPlaying = false;
+        const overlay = document.getElementById('exportOverlay');
+        const prog = document.getElementById('exportProgress');
+        overlay.style.display = 'flex';
 
-// Initial Render
-timeline.max = state.dur;
-render(0);
-</script>
+        const fps = 30;
+        const totalTime = state.duration + state.endScreenDur;
+        const totalFrames = totalTime * fps;
+        
+        const stream = canvas.captureStream(fps);
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 12000000 });
+        const chunks = [];
 
-</body>
-</html>
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `VoidUpLift_Pro_${Date.now()}.webm`;
+            link.click();
+            overlay.style.display = 'none';
+        };
+
+        recorder.start();
+        for(let i=0; i <= totalFrames; i++) {
+            render(i / fps);
+            prog.innerText = Math.round((i / totalFrames) * 100) + "%";
+            await new Promise(r => requestAnimationFrame(r));
+        }
+        recorder.stop();
+    }
+
+    /**
+     * UI UTILS
+     */
+    function showPanel(el, id) {
+        document.querySelectorAll('.nav-tabs span').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById(id).classList.add('active');
+    }
+
+    function applyMagicTheme() {
+       
