@@ -14,18 +14,18 @@
 body{ background:#000; color:#fff; font-family:'Poppins', sans-serif; height:100vh; overflow:hidden; }
 .app{ display:flex; flex-direction:column; height:100vh; max-width: 500px; margin: 0 auto; border: 1px solid #222; }
 
-/* ---------- PREVIEW AREA (Optimized Size) ---------- */
+/* ---------- PREVIEW AREA ---------- */
 .preview{ 
     display:flex; 
     flex-direction:column; 
     align-items:center; 
     padding:10px; 
     background:#111; 
-    flex-shrink: 0; /* Prevents preview from being squashed */
+    flex-shrink: 0;
 }
 canvas{ 
     width:auto; 
-    height:35vh; /* Fixed height relative to viewport to save space */
+    height:35vh; 
     aspect-ratio:9/16; 
     border-radius:12px; 
     border:2px solid #333; 
@@ -48,7 +48,7 @@ canvas{
 .iconbar span{ font-size:24px; cursor:pointer; color: #666; transition: 0.3s; }
 .iconbar span.active-tab { color: #00f2ea; }
 
-/* ---------- CONTROLS AREA (More Space) ---------- */
+/* ---------- CONTROLS AREA ---------- */
 .controls{ 
     flex:1; 
     background:#080808; 
@@ -59,7 +59,6 @@ canvas{
 .panel.active{ display:block; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* Grid for smaller inputs */
 .control-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -84,19 +83,10 @@ input[type="range"] { width: 100%; margin-bottom: 15px; accent-color: #00f2ea; h
 input[type="color"] { width: 100%; height: 35px; background: none; border: 1px solid #333; cursor: pointer; border-radius: 6px; }
 
 .status-bar{ text-align:center; font-size:11px; color:#666; padding:8px; background: #050505; }
-
-/* ---------- FONT PRELOADER ---------- */
-#font-loader { position: absolute; visibility: hidden; pointer-events: none; }
 </style>
 </head>
 
 <body>
-<div id="font-loader">
-    <span style="font-family: 'Poppins';">.</span><span style="font-family: 'Anton';">.</span>
-    <span style="font-family: 'Bebas Neue';">.</span><span style="font-family: 'Playfair Display';">.</span>
-    <span style="font-family: 'Oswald';">.</span><span style="font-family: 'Pacifico';">.</span>
-</div>
-
 <div class="app">
     <div class="preview">
         <canvas id="canvas" width="1080" height="1920"></canvas>
@@ -118,29 +108,18 @@ input[type="color"] { width: 100%; height: 35px; background: none; border: 1px s
         <div id="textP" class="panel active">
             <label>Text Content</label>
             <textarea id="textInput" rows="2">VoidUpLift</textarea>
-            
             <label>Font Size</label>
             <input type="range" id="fontSizeRange" min="30" max="400" value="100">
-            
             <div class="control-grid">
-                <div>
-                    <label>Text Color</label>
-                    <input type="color" id="textColorPicker" value="#ffffff">
-                </div>
-                <div>
-                    <label>Typing Speed</label>
-                    <input type="range" id="typingSpeedRange" min="5" max="60" value="20">
-                </div>
+                <div><label>Text Color</label><input type="color" id="textColorPicker" value="#ffffff"></div>
+                <div><label>Typing Speed</label><input type="range" id="typingSpeedRange" min="5" max="60" value="20"></div>
             </div>
-            
-            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                <input type="checkbox" id="typingToggle"> Enable Typing Effect
-            </label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="typingToggle"> Enable Typing Effect</label>
         </div>
 
         <div id="fontP" class="panel">
             <label>Typography</label>
-            <select id="fontFamilySelect" size="5">
+            <select id="fontFamilySelect" size="6">
                 <option value="Poppins" selected>Poppins</option>
                 <option value="Anton">Anton</option>
                 <option value="Bebas Neue">Bebas Neue</option>
@@ -148,20 +127,13 @@ input[type="color"] { width: 100%; height: 35px; background: none; border: 1px s
                 <option value="Oswald">Oswald</option>
                 <option value="Pacifico">Pacifico</option>
             </select>
-            
             <label>Entrance Animation</label>
-            <select id="animSelect">
-                <option value="fade">Smooth Fade</option>
-                <option value="slide">Cinematic Rise</option>
-                <option value="pop">Pop Zoom</option>
-                <option value="bounce">Bouncy</option>
-            </select>
+            <select id="animSelect"><option value="fade">Smooth Fade</option><option value="slide">Cinematic Rise</option><option value="pop">Pop Zoom</option><option value="bounce">Bouncy</option></select>
         </div>
 
         <div id="imgP" class="panel">
-            <label>Background Image</label>
+            <label>Upload Image</label>
             <input type="file" id="bgUpload" accept="image/*">
-            
             <label>Video Length (Seconds)</label>
             <input type="number" id="videoDuration" value="17">
         </div>
@@ -169,10 +141,8 @@ input[type="color"] { width: 100%; height: 35px; background: none; border: 1px s
         <div id="audioP" class="panel">
             <label>Background Track</label>
             <input type="file" id="audioUpload" accept="audio/*">
-            <p style="font-size: 10px; color: #444; margin-top:5px;">Audio merges during export.</p>
         </div>
     </div>
-
     <div class="status-bar" id="statusMsg">Ready to create</div>
 </div>
 
@@ -197,6 +167,7 @@ function showPanel(id, iconEl) {
 
 function updateFrame() { drawCanvas(currentTime); }
 
+// Event Listeners
 textInput.oninput = e => { textStr = e.target.value; updateFrame(); };
 fontSizeRange.oninput = e => { fSize = parseInt(e.target.value); updateFrame(); };
 textColorPicker.oninput = e => { tColor = e.target.value; updateFrame(); };
@@ -209,6 +180,7 @@ timeline.oninput = e => { currentTime = parseFloat(e.target.value); updateFrame(
 bgUpload.onchange = e => { if(e.target.files[0]) { bgImg.src = URL.createObjectURL(e.target.files[0]); bgImg.onload = updateFrame; } };
 audioUpload.onchange = e => { if(e.target.files[0]) userAudio = new Audio(URL.createObjectURL(e.target.files[0])); };
 
+// Text Dragging logic
 let isDragging = false;
 canvas.onpointerdown = () => isDragging = true;
 window.onpointerup = () => isDragging = false;
@@ -223,18 +195,25 @@ window.onpointermove = e => {
 function drawCanvas(t) {
     ctx.save();
     ctx.imageSmoothingEnabled = true;
-    ctx.fillStyle = "#111"; 
+    ctx.fillStyle = "#000"; // Black background for the "gaps"
     ctx.fillRect(0,0,1080,1920);
+
+    // IMAGE FIT LOGIC (CENTERS EXACT SIZE WITHOUT GAPS IN ASPECT RATIO)
+    if(bgImg.complete && bgImg.width) {
+        let hRatio = 1080 / bgImg.width;
+        let vRatio = 1920 / bgImg.height;
+        let ratio  = Math.min(hRatio, vRatio); // Use the smaller ratio to fit the image
+        let centerShiftX = (1080 - bgImg.width * ratio) / 2;
+        let centerShiftY = (1920 - bgImg.height * ratio) / 2;
+        
+        ctx.drawImage(bgImg, 0, 0, bgImg.width, bgImg.height, 
+                      centerShiftX, centerShiftY, bgImg.width * ratio, bgImg.height * ratio);
+    }
 
     let globalFade = Math.min(1, t / 1.0);
     ctx.globalAlpha = globalFade;
 
-    if(bgImg.complete && bgImg.width) {
-        let scale = Math.max(1080 / bgImg.width, 1920 / bgImg.height);
-        let w = bgImg.width * scale, h = bgImg.height * scale;
-        ctx.drawImage(bgImg, (1080-w)/2, (1920-h)/2, w, h);
-    }
-
+    // Outro sequence
     if (t >= totalSecs - 2.5) {
         let prog = Math.min(1, (t - (totalSecs - 2.5)) / 2.5);
         ctx.fillStyle = "#000"; ctx.globalAlpha = prog; ctx.fillRect(0,0,1080,1920);
@@ -242,13 +221,10 @@ function drawCanvas(t) {
         ctx.fillStyle = "#00f2ea";
         ctx.font = `bold ${110 + prog*20}px Poppins`;
         ctx.fillText("VoidUpLift", 540, 920);
-        ctx.fillStyle = "#fff";
-        ctx.font = "50px Poppins";
-        ctx.globalAlpha = Math.max(0, prog - 0.3);
-        ctx.fillText("CREATING AWESOME", 540, 1040);
         ctx.restore(); return;
     }
 
+    // Text Layer
     ctx.save();
     ctx.fillStyle = tColor;
     ctx.font = `${fSize}px "${currentFont}"`;
@@ -256,15 +232,11 @@ function drawCanvas(t) {
     ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 20;
 
     let animProg = Math.min(1, t / 1.5);
-    let dx = textX, dy = textY, sc = 1;
-
+    let dx = textX, dy = textY;
     if (animationType === "slide") dy += (1 - animProg) * 150;
-    if (animationType === "pop") sc = 0.5 + (animProg * 0.5);
-    if (animationType === "bounce") dy += Math.abs(Math.sin(t * 4)) * -50;
-
+    
     ctx.globalAlpha = animProg * globalFade;
     ctx.translate(dx, dy);
-    ctx.scale(sc, sc);
 
     let displayStr = useTyping ? textStr.slice(0, Math.floor(t * typeSpeed)) : textStr;
     let words = displayStr.split(" "), line = "", yOffset = 0;
@@ -313,7 +285,10 @@ async function exportHQVideo() {
         currentTime = i / fps; 
         drawCanvas(currentTime);
         stream.getVideoTracks()[0].requestFrame(); 
-        if (i % 15 === 0) { statusMsg.textContent = `Progress: ${Math.round((i/totalFrames)*100)}%`; await new Promise(r => setTimeout(r, 5)); }
+        if (i % 15 === 0) { 
+            statusMsg.textContent = `Progress: ${Math.round((i/totalFrames)*100)}%`; 
+            await new Promise(r => setTimeout(r, 5)); 
+        }
     }
     recorder.stop();
     recorder.onstop = () => {
