@@ -1,353 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoidUpLift Pro - Final Edition</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoidUpLift Reels Editor Pro</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&family=Anton&family=Bebas+Neue&family=Cinzel:wght@700&family=Oswald:wght@500&family=Pacifico&family=Orbitron:wght@900&family=Syncopate:wght@700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Anton&family=Bebas+Neue&family=Playfair+Display&family=Oswald&family=Pacifico&family=Cinzel&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-    <style>
-        :root { 
-            --accent: #00ff88; 
-            --bg: #050505; 
-            --panel: #111; 
-            --border: #222;
-        }
+<style>
+/* ---------- RESET & CORE ---------- */
+*{ box-sizing:border-box; margin:0; padding:0; }
+body{ background:#000; color:#fff; font-family:'Poppins', sans-serif; height:100vh; overflow:hidden; }
+.app{ display:flex; flex-direction:column; height:100vh; max-width: 500px; margin: 0 auto; border: 1px solid #222; }
 
-        /* 1. PROTECTION: DISABLE TEXT SELECTION & COPYING */
-        * { 
-            box-sizing: border-box; margin: 0; padding: 0; outline: none; 
-            -webkit-user-select: none; user-select: none;
-            -webkit-touch-callout: none;
-        }
+/* ---------- PREVIEW AREA (Optimized Size) ---------- */
+.preview{ 
+    display:flex; 
+    flex-direction:column; 
+    align-items:center; 
+    padding:10px; 
+    background:#111; 
+    flex-shrink: 0; /* Prevents preview from being squashed */
+}
+canvas{ 
+    width:auto; 
+    height:35vh; /* Fixed height relative to viewport to save space */
+    aspect-ratio:9/16; 
+    border-radius:12px; 
+    border:2px solid #333; 
+    background:#000; 
+    cursor: crosshair; 
+    touch-action: none; 
+}
+.play-btn-ui{ font-size:36px; margin-top:5px; cursor:pointer; color: #00f2ea; }
+#timeline { width: 90%; margin: 8px 0; accent-color: #00f2ea; cursor: pointer; height: 14px; }
 
-        input, textarea, select { -webkit-user-select: text; user-select: text; }
-        
-        body { 
-            background: #000; color: #fff; font-family: 'Poppins', sans-serif; 
-            height: 100vh; overflow: hidden; 
-        }
+/* ---------- ICON NAVIGATION ---------- */
+.iconbar{ 
+    display:flex; 
+    justify-content:space-around; 
+    padding:10px 0; 
+    background:#080808; 
+    border-top:1px solid #222;
+    border-bottom: 1px solid #1a1a1a;
+}
+.iconbar span{ font-size:24px; cursor:pointer; color: #666; transition: 0.3s; }
+.iconbar span.active-tab { color: #00f2ea; }
 
-        .app-container {
-            display: grid; grid-template-rows: auto auto 1fr; height: 100vh;
-        }
+/* ---------- CONTROLS AREA (More Space) ---------- */
+.controls{ 
+    flex:1; 
+    background:#080808; 
+    overflow-y:auto; 
+    padding:15px; 
+}
+.panel{ display:none; animation: fadeIn 0.2s ease; }
+.panel.active{ display:block; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* 2. PREVIEW SECTION - EXACT CENTER COVER */
-        .preview-section {
-            background: #000; display: flex; flex-direction: column;
-            align-items: center; padding: 10px; border-bottom: 1px solid var(--border);
-        }
+/* Grid for smaller inputs */
+.control-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
 
-        #canvasWrapper {
-            position: relative; border: 1px solid #333; border-radius: 4px;
-            overflow: hidden; background: #000; line-height: 0;
-            box-shadow: 0 0 30px rgba(0,0,0,1);
-        }
+label { display: block; margin-bottom: 4px; font-size: 10px; color: #00f2ea; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+textarea, input[type="text"], input[type="number"], select { 
+    width:100%; 
+    background:#151515; 
+    border:1px solid #333; 
+    color:#fff; 
+    padding:10px; 
+    margin-bottom:12px; 
+    border-radius: 6px; 
+    font-size: 13px;
+    font-family: inherit; 
+    outline: none; 
+}
+input[type="range"] { width: 100%; margin-bottom: 15px; accent-color: #00f2ea; height: 12px; }
+input[type="color"] { width: 100%; height: 35px; background: none; border: 1px solid #333; cursor: pointer; border-radius: 6px; }
 
-        canvas {
-            width: 45vw; max-width: 210px; aspect-ratio: 9/16;
-            cursor: move; display: block;
-        }
+.status-bar{ text-align:center; font-size:11px; color:#666; padding:8px; background: #050505; }
 
-        /* 3. ACCESSIBLE SCRUBBER */
-        .playback-bar {
-            width: 95%; max-width: 400px; margin-top: 12px;
-            display: flex; align-items: center; gap: 15px;
-        }
-
-        #playBtn { font-size: 45px; color: var(--accent); cursor: pointer; }
-        
-        #timeline { 
-            flex: 1; height: 12px; accent-color: var(--accent); 
-            cursor: pointer; border-radius: 6px; 
-        }
-
-        /* 4. NAVIGATION */
-        .nav-tabs {
-            display: flex; justify-content: space-around;
-            background: #080808; padding: 15px 0; border-bottom: 1px solid var(--border);
-        }
-
-        .nav-tabs span { font-size: 26px; color: #444; cursor: pointer; transition: 0.3s; }
-        .nav-tabs span.active { color: var(--accent); text-shadow: 0 0 15px rgba(0,255,136,0.5); }
-
-        /* 5. PANELS */
-        .settings-area { background: var(--bg); overflow-y: auto; padding: 20px; padding-bottom: 100px; }
-        .panel { display: none; }
-        .panel.active { display: block; animation: fadeIn 0.3s ease; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .control-group { margin-bottom: 20px; }
-        label { display: flex; justify-content: space-between; font-size: 10px; color: #888; margin-bottom: 8px; text-transform: uppercase; }
-        label span { color: var(--accent); }
-
-        input[type="text"], textarea, select, input[type="number"] {
-            width: 100%; background: var(--panel); border: 1px solid var(--border);
-            color: #fff; padding: 12px; border-radius: 8px; font-size: 13px;
-        }
-
-        textarea { height: 70px; resize: none; border-left: 3px solid var(--accent); }
-
-        .btn-main {
-            background: var(--accent); color: #000; border: none; padding: 16px;
-            border-radius: 8px; font-weight: 700; width: 100%; cursor: pointer;
-            text-transform: uppercase; margin-top: 10px;
-        }
-
-        #exportOverlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
-        }
-    </style>
+/* ---------- FONT PRELOADER ---------- */
+#font-loader { position: absolute; visibility: hidden; pointer-events: none; }
+</style>
 </head>
-<body oncontextmenu="return false;">
 
-<div id="exportOverlay">
-    <div style="width:50px; height:50px; border:4px solid #222; border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite"></div>
-    <h2 style="margin-top:20px">RENDERING VOID</h2>
-    <p id="exportProgress" style="color:var(--accent); font-size:24px; font-weight:bold">0%</p>
+<body>
+<div id="font-loader">
+    <span style="font-family: 'Poppins';">.</span><span style="font-family: 'Anton';">.</span>
+    <span style="font-family: 'Bebas Neue';">.</span><span style="font-family: 'Playfair Display';">.</span>
+    <span style="font-family: 'Oswald';">.</span><span style="font-family: 'Pacifico';">.</span>
 </div>
 
-<div class="app-container">
-    <section class="preview-section">
-        <div id="canvasWrapper">
-            <canvas id="mainCanvas" width="1080" height="1920"></canvas>
+<div class="app">
+    <div class="preview">
+        <canvas id="canvas" width="1080" height="1920"></canvas>
+        <div style="display:flex; align-items:center; width:100%; justify-content:center; gap:10px;">
+            <span id="playBtn" class="material-icons play-btn-ui">play_circle_filled</span>
+            <input type="range" id="timeline" min="0" max="17" step="0.01" value="0">
         </div>
-        <div class="playback-bar">
-            <span id="playBtn" class="material-icons">play_circle_filled</span>
-            <input type="range" id="timeline" min="0" step="0.01" value="0">
-        </div>
-        <div id="timer" style="font-size:11px; color:#444; margin-top:8px">0.0s / 8.5s</div>
-    </section>
+    </div>
 
-    <nav class="nav-tabs">
-        <span class="material-icons active" onclick="showPanel(this, 'text-p')">title</span>
-        <span class="material-icons" onclick="showPanel(this, 'style-p')">format_size</span>
-        <span class="material-icons" onclick="showPanel(this, 'media-p')">image</span>
-        <span class="material-icons" onclick="showPanel(this, 'fx-p')">auto_awesome</span>
-        <span class="material-icons" onclick="startExport()" style="color:var(--accent)">download</span>
-    </nav>
+    <div class="iconbar">
+        <span class="material-icons active-tab" onclick="showPanel('textP', this)">text_fields</span>
+        <span class="material-icons" onclick="showPanel('fontP', this)">font_download</span>
+        <span class="material-icons" onclick="showPanel('imgP', this)">image</span>
+        <span class="material-icons" onclick="showPanel('audioP', this)">music_note</span>
+        <span class="material-icons" style="color:#00f2ea" onclick="exportHQVideo()">download</span>
+    </div>
 
-    <main class="settings-area">
-        <div id="text-p" class="panel active">
-            <label>Headline (Auto-Wrap)</label>
-            <textarea id="mainText">THE UNIVERSE IS WITHIN YOU.</textarea>
-        </div>
-
-        <div id="style-p" class="panel">
-            <div class="control-group">
-                <label>Font Size: <span id="sizeVal">120</span>px</label>
-                <input type="range" id="fontSize" min="30" max="450" value="120">
+    <div class="controls">
+        <div id="textP" class="panel active">
+            <label>Text Content</label>
+            <textarea id="textInput" rows="2">VoidUpLift</textarea>
+            
+            <label>Font Size</label>
+            <input type="range" id="fontSizeRange" min="30" max="400" value="100">
+            
+            <div class="control-grid">
+                <div>
+                    <label>Text Color</label>
+                    <input type="color" id="textColorPicker" value="#ffffff">
+                </div>
+                <div>
+                    <label>Typing Speed</label>
+                    <input type="range" id="typingSpeedRange" min="5" max="60" value="20">
+                </div>
             </div>
-            <div class="control-group">
-                <label>Typography</label>
-                <select id="fontFam">
-                    <option value="Anton">Anton (Heavy)</option>
-                    <option value="Orbitron">Orbitron (Cyber)</option>
-                    <option value="Syncopate">Syncopate (Wide)</option>
-                    <option value="Pacifico">Pacifico (Script)</option>
-                </select>
-            </div>
+            
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                <input type="checkbox" id="typingToggle"> Enable Typing Effect
+            </label>
         </div>
 
-        <div id="media-p" class="panel">
-            <label>Upload Background</label>
-            <input type="file" id="imgUpload" accept="image/*">
-            <div class="control-group" style="margin-top:15px">
-                <label>Duration (Seconds)</label>
-                <input type="number" id="vidDur" value="6">
-            </div>
+        <div id="fontP" class="panel">
+            <label>Typography</label>
+            <select id="fontFamilySelect" size="5">
+                <option value="Poppins" selected>Poppins</option>
+                <option value="Anton">Anton</option>
+                <option value="Bebas Neue">Bebas Neue</option>
+                <option value="Playfair Display">Playfair Display</option>
+                <option value="Oswald">Oswald</option>
+                <option value="Pacifico">Pacifico</option>
+            </select>
+            
+            <label>Entrance Animation</label>
+            <select id="animSelect">
+                <option value="fade">Smooth Fade</option>
+                <option value="slide">Cinematic Rise</option>
+                <option value="pop">Pop Zoom</option>
+                <option value="bounce">Bouncy</option>
+            </select>
         </div>
 
-        <div id="fx-p" class="panel">
-            <label>End Screen Credits</label>
-            <input type="text" id="creditName" value="VOIDUPLIFT ENGINE">
-            <button class="btn-main" onclick="applyMagicTheme()">✨ Magic Style</button>
+        <div id="imgP" class="panel">
+            <label>Background Image</label>
+            <input type="file" id="bgUpload" accept="image/*">
+            
+            <label>Video Length (Seconds)</label>
+            <input type="number" id="videoDuration" value="17">
         </div>
-    </main>
+
+        <div id="audioP" class="panel">
+            <label>Background Track</label>
+            <input type="file" id="audioUpload" accept="audio/*">
+            <p style="font-size: 10px; color: #444; margin-top:5px;">Audio merges during export.</p>
+        </div>
+    </div>
+
+    <div class="status-bar" id="statusMsg">Ready to create</div>
 </div>
 
 <script>
-    const canvas = document.getElementById('mainCanvas');
-    const ctx = canvas.getContext('2d');
-    const timeline = document.getElementById('timeline');
-    let overlayImg = new Image();
-    let isPlaying = false, currentTime = 0, lastTime = 0;
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d", {alpha: false});
+const timeline = document.getElementById("timeline");
 
-    const state = {
-        text: "THE UNIVERSE IS WITHIN YOU.",
-        x: 540, y: 960, size: 120, font: "Anton", color: "#ffffff",
-        duration: 6, endDur: 2.5, credits: "VOIDUPLIFT ENGINE"
+let bgImg = new Image(), userAudio = null;
+let textStr = "VoidUpLift", currentFont = "Poppins";
+let fSize = 100, tColor = "#ffffff", totalSecs = 17;
+let textX = 100, textY = 400, animationType = "fade";
+let useTyping = false, typeSpeed = 20;
+let currentTime = 0, isPlaying = false, lastFrameTime = 0;
+
+function showPanel(id, iconEl) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.iconbar span').forEach(s => s.classList.remove('active-tab'));
+    document.getElementById(id).classList.add('active');
+    iconEl.classList.add('active-tab');
+}
+
+function updateFrame() { drawCanvas(currentTime); }
+
+textInput.oninput = e => { textStr = e.target.value; updateFrame(); };
+fontSizeRange.oninput = e => { fSize = parseInt(e.target.value); updateFrame(); };
+textColorPicker.oninput = e => { tColor = e.target.value; updateFrame(); };
+fontFamilySelect.onchange = e => { currentFont = e.target.value; updateFrame(); };
+animSelect.onchange = e => { animationType = e.target.value; updateFrame(); };
+typingToggle.onchange = e => { useTyping = e.target.checked; updateFrame(); };
+typingSpeedRange.oninput = e => { typeSpeed = parseInt(e.target.value); updateFrame(); };
+videoDuration.oninput = e => { totalSecs = +e.target.value; timeline.max = totalSecs; updateFrame(); };
+timeline.oninput = e => { currentTime = parseFloat(e.target.value); updateFrame(); };
+bgUpload.onchange = e => { if(e.target.files[0]) { bgImg.src = URL.createObjectURL(e.target.files[0]); bgImg.onload = updateFrame; } };
+audioUpload.onchange = e => { if(e.target.files[0]) userAudio = new Audio(URL.createObjectURL(e.target.files[0])); };
+
+let isDragging = false;
+canvas.onpointerdown = () => isDragging = true;
+window.onpointerup = () => isDragging = false;
+window.onpointermove = e => {
+    if(!isDragging) return;
+    const rect = canvas.getBoundingClientRect();
+    textX = (e.clientX - rect.left) * (1080 / rect.width);
+    textY = (e.clientY - rect.top) * (1920 / rect.height);
+    updateFrame();
+};
+
+function drawCanvas(t) {
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.fillStyle = "#111"; 
+    ctx.fillRect(0,0,1080,1920);
+
+    let globalFade = Math.min(1, t / 1.0);
+    ctx.globalAlpha = globalFade;
+
+    if(bgImg.complete && bgImg.width) {
+        let scale = Math.max(1080 / bgImg.width, 1920 / bgImg.height);
+        let w = bgImg.width * scale, h = bgImg.height * scale;
+        ctx.drawImage(bgImg, (1080-w)/2, (1920-h)/2, w, h);
+    }
+
+    if (t >= totalSecs - 2.5) {
+        let prog = Math.min(1, (t - (totalSecs - 2.5)) / 2.5);
+        ctx.fillStyle = "#000"; ctx.globalAlpha = prog; ctx.fillRect(0,0,1080,1920);
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillStyle = "#00f2ea";
+        ctx.font = `bold ${110 + prog*20}px Poppins`;
+        ctx.fillText("VoidUpLift", 540, 920);
+        ctx.fillStyle = "#fff";
+        ctx.font = "50px Poppins";
+        ctx.globalAlpha = Math.max(0, prog - 0.3);
+        ctx.fillText("CREATING AWESOME", 540, 1040);
+        ctx.restore(); return;
+    }
+
+    ctx.save();
+    ctx.fillStyle = tColor;
+    ctx.font = `${fSize}px "${currentFont}"`;
+    ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 20;
+
+    let animProg = Math.min(1, t / 1.5);
+    let dx = textX, dy = textY, sc = 1;
+
+    if (animationType === "slide") dy += (1 - animProg) * 150;
+    if (animationType === "pop") sc = 0.5 + (animProg * 0.5);
+    if (animationType === "bounce") dy += Math.abs(Math.sin(t * 4)) * -50;
+
+    ctx.globalAlpha = animProg * globalFade;
+    ctx.translate(dx, dy);
+    ctx.scale(sc, sc);
+
+    let displayStr = useTyping ? textStr.slice(0, Math.floor(t * typeSpeed)) : textStr;
+    let words = displayStr.split(" "), line = "", yOffset = 0;
+    for (let w of words) {
+        let test = line + w + " ";
+        if (ctx.measureText(test).width > 900) { 
+            ctx.fillText(line, 0, yOffset); 
+            line = w + " "; 
+            yOffset += fSize * 1.2; 
+        } else { line = test; }
+    }
+    ctx.fillText(line, 0, yOffset);
+    ctx.restore();
+    ctx.restore();
+}
+
+playBtn.onclick = () => {
+    isPlaying = !isPlaying;
+    playBtn.textContent = isPlaying ? "pause_circle_filled" : "play_circle_filled";
+    if (userAudio) { userAudio.currentTime = currentTime; isPlaying ? userAudio.play() : userAudio.pause(); }
+    if (isPlaying) { lastFrameTime = performance.now(); requestAnimationFrame(playLoop); }
+};
+
+function playLoop(now) {
+    if (!isPlaying) return;
+    currentTime += (now - lastFrameTime) / 1000;
+    lastFrameTime = now;
+    timeline.value = currentTime;
+    updateFrame();
+    if (currentTime >= totalSecs) { isPlaying = false; playBtn.textContent = "play_circle_filled"; if(userAudio) userAudio.pause(); }
+    else requestAnimationFrame(playLoop);
+}
+
+async function exportHQVideo() {
+    if (isPlaying) return;
+    statusMsg.textContent = "Rendering...";
+    const stream = canvas.captureStream(0); 
+    const recorder = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp9", videoBitsPerSecond: 40000000 });
+    const chunks = [];
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.start();
+
+    const fps = 30;
+    const totalFrames = totalSecs * fps;
+    for (let i = 0; i <= totalFrames; i++) {
+        currentTime = i / fps; 
+        drawCanvas(currentTime);
+        stream.getVideoTracks()[0].requestFrame(); 
+        if (i % 15 === 0) { statusMsg.textContent = `Progress: ${Math.round((i/totalFrames)*100)}%`; await new Promise(r => setTimeout(r, 5)); }
+    }
+    recorder.stop();
+    recorder.onstop = () => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob(chunks, {type: "video/webm"}));
+        a.download = "VoidUpLift_Master.webm"; a.click();
+        statusMsg.textContent = "Exported Successfully!";
     };
+}
 
-    /**
-     * AUTO-WRAP TEXT LOGIC
-     */
-    function wrapText(context, text, x, y, maxWidth, lineHeight) {
-        const words = text.split(' ');
-        let line = '';
-        let currentY = y;
-
-        for (let n = 0; n < words.length; n++) {
-            let testLine = line + words[n] + ' ';
-            let metrics = context.measureText(testLine);
-            if (metrics.width > maxWidth && n > 0) {
-                context.fillText(line, x, currentY);
-                line = words[n] + ' ';
-                currentY += lineHeight;
-            } else {
-                line = testLine;
-            }
-        }
-        context.fillText(line, x, currentY);
-    }
-
-    /**
-     * RENDER ENGINE
-     */
-    function render(t) {
-        ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, 1080, 1920);
-
-        if (t < state.duration) {
-            // 1. IMAGE COVER (EXACT FIT)
-            if (overlayImg.src && overlayImg.complete) {
-                const scale = Math.max(1080 / overlayImg.width, 1920 / overlayImg.height);
-                const w = overlayImg.width * scale;
-                const h = overlayImg.height * scale;
-                ctx.drawImage(overlayImg, (1080 - w) / 2, (1920 - h) / 2, w, h);
-            }
-
-            // 2. TEXT LAYER WITH DRAG & WRAP
-            ctx.save();
-            ctx.fillStyle = state.color;
-            ctx.font = `${state.size}px "${state.font}"`;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.shadowColor = "rgba(0,0,0,0.8)";
-            ctx.shadowBlur = 20;
-            wrapText(ctx, state.text, state.x, state.y, 980, state.size * 1.2);
-            ctx.restore();
-        } else {
-            // 3. VOIDUPLIFT END SCREEN
-            const et = t - state.duration;
-            ctx.fillStyle = "#050505";
-            ctx.fillRect(0,0,1080,1920);
-            
-            ctx.globalAlpha = Math.min(1, et * 2);
-            ctx.fillStyle = "#00ff88";
-            ctx.font = "bold 100px Anton";
-            ctx.textAlign = "center";
-            ctx.fillText("VOIDUPLIFT", 540, 920);
-
-            ctx.globalAlpha = Math.min(1, (et-0.5)*2);
-            ctx.fillStyle = "#fff";
-            ctx.font = "40px Poppins";
-            ctx.fillText(state.credits.toUpperCase(), 540, 1030);
-        }
-    }
-
-    function showPanel(btn, id) {
-        document.querySelectorAll('.nav-tabs span').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(id).classList.add('active');
-    }
-
-    /**
-     * INTERACTIONS
-     */
-    let isDown = false;
-    canvas.onmousedown = () => isDown = true;
-    window.onmouseup = () => isDown = false;
-    canvas.onmousemove = (e) => {
-        if (!isDown) return;
-        const r = canvas.getBoundingClientRect();
-        state.x = (e.clientX - r.left) * (1080 / r.width);
-        state.y = (e.clientY - r.top) * (1920 / r.height);
-        render(currentTime);
-    };
-
-    document.getElementById('fontSize').oninput = (e) => {
-        state.size = e.target.value;
-        document.getElementById('sizeVal').innerText = e.target.value;
-        render(currentTime);
-    };
-    document.getElementById('mainText').oninput = (e) => { state.text = e.target.value; render(currentTime); };
-    document.getElementById('fontFam').onchange = (e) => { state.font = e.target.value; render(currentTime); };
-    document.getElementById('vidDur').oninput = (e) => { state.duration = parseFloat(e.target.value); updateTimeline(); };
-    document.getElementById('creditName').oninput = (e) => { state.credits = e.target.value; };
-
-    document.getElementById('imgUpload').onchange = (e) => {
-        const reader = new FileReader();
-        reader.onload = (f) => { 
-            overlayImg = new Image();
-            overlayImg.src = f.target.result; 
-            overlayImg.onload = () => render(currentTime); 
-        };
-        reader.readAsDataURL(e.target.files[0]);
-    };
-
-    /**
-     * PLAYBACK
-     */
-    document.getElementById('playBtn').onclick = () => {
-        isPlaying = !isPlaying;
-        document.getElementById('playBtn').innerText = isPlaying ? "pause_circle_filled" : "play_circle_filled";
-        if (isPlaying) { lastTime = performance.now(); requestAnimationFrame(loop); }
-    };
-
-    function loop(now) {
-        if (!isPlaying) return;
-        currentTime += (now - lastTime) / 1000;
-        lastTime = now;
-        if (currentTime > state.duration + state.endDur) currentTime = 0;
-        timeline.value = currentTime;
-        document.getElementById('timer').innerText = `${currentTime.toFixed(1)}s / ${(state.duration+state.endDur).toFixed(1)}s`;
-        render(currentTime);
-        requestAnimationFrame(loop);
-    }
-
-    function updateTimeline() { timeline.max = state.duration + state.endDur; }
-    timeline.oninput = () => { currentTime = parseFloat(timeline.value); render(currentTime); };
-
-    function applyMagicTheme() {
-        state.font = "Orbitron"; state.size = 150; state.text = "LEVEL UP";
-        document.getElementById('fontFam').value = "Orbitron";
-        document.getElementById('fontSize').value = 150;
-        document.getElementById('mainText').value = "LEVEL UP";
-        render(currentTime);
-    }
-
-    async function startExport() {
-        document.getElementById('exportOverlay').style.display = 'flex';
-        const stream = canvas.captureStream(30);
-        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-        const chunks = [];
-        recorder.ondataavailable = e => chunks.push(e.data);
-        recorder.onstop = () => {
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(new Blob(chunks));
-            link.download = `VoidReel_Final.webm`;
-            link.click();
-            document.getElementById('exportOverlay').style.display = 'none';
-        };
-        recorder.start();
-        const frames = (state.duration + state.endDur) * 30;
-        for(let i=0; i<=frames; i++) {
-            render(i/30);
-            document.getElementById('exportProgress').innerText = Math.round((i/frames)*100) + "%";
-            await new Promise(r => requestAnimationFrame(r));
-        }
-        recorder.stop();
-    }
-
-    window.onload = () => { updateTimeline(); render(0); };
+window.onload = () => setTimeout(updateFrame, 500);
 </script>
-
-<style> @keyframes spin { to { transform: rotate(360deg); } } </style>
 </body>
 </html>
