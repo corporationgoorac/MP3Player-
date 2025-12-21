@@ -1,555 +1,295 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VoidUpLift Pro - High Performance Reel Editor</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoidUpLift Pro - Final Edition</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&family=Anton&family=Bebas+Neue&family=Cinzel:wght@700&family=Oswald:wght@500&family=Pacifico&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&family=Anton&family=Bebas+Neue&family=Cinzel:wght@700&family=Oswald:wght@500&family=Pacifico&family=Orbitron:wght@900&family=Syncopate:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-<style>
-    :root { 
-        --accent: #00ff88; 
-        --bg: #050505; 
-        --panel: #111; 
-        --border: #222;
-        --text-dim: #888;
-    }
+    <style>
+        :root { 
+            --accent: #00ff88; 
+            --bg: #050505; 
+            --panel: #111; 
+            --border: #222;
+        }
 
-    /* DISABLE TEXT SELECTION & COPYING */
-    * { 
-        box-sizing: border-box; 
-        margin: 0; 
-        padding: 0; 
-        outline: none; 
-        -webkit-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-        -webkit-touch-callout: none;
-    }
+        /* 1. PROTECTION: DISABLE TEXT SELECTION & COPYING */
+        * { 
+            box-sizing: border-box; margin: 0; padding: 0; outline: none; 
+            -webkit-user-select: none; user-select: none;
+            -webkit-touch-callout: none;
+        }
 
-    /* ENABLE SELECTION ONLY FOR INPUTS */
-    input, textarea, select {
-        -webkit-user-select: text;
-        user-select: text;
-    }
-    
-    body { 
-        background: #000; 
-        color: #fff; 
-        font-family: 'Poppins', sans-serif; 
-        height: 100vh; 
-        overflow: hidden; 
-    }
+        input, textarea, select { -webkit-user-select: text; user-select: text; }
+        
+        body { 
+            background: #000; color: #fff; font-family: 'Poppins', sans-serif; 
+            height: 100vh; overflow: hidden; 
+        }
 
-    .app-container {
-        display: grid;
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto 1fr;
-        height: 100vh;
-    }
+        .app-container {
+            display: grid; grid-template-rows: auto auto 1fr; height: 100vh;
+        }
 
-    /* PREVIEW SECTION */
-    .preview-section {
-        background: #0a0a0a;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 10px;
-        border-bottom: 1px solid var(--border);
-        position: relative;
-    }
+        /* 2. PREVIEW SECTION - EXACT CENTER COVER */
+        .preview-section {
+            background: #000; display: flex; flex-direction: column;
+            align-items: center; padding: 10px; border-bottom: 1px solid var(--border);
+        }
 
-    #canvasWrapper {
-        position: relative;
-        box-shadow: 0 0 50px rgba(0,0,0,0.5);
-        border: 2px solid #333;
-        border-radius: 8px;
-        overflow: hidden;
-        background: #000;
-    }
+        #canvasWrapper {
+            position: relative; border: 1px solid #333; border-radius: 4px;
+            overflow: hidden; background: #000; line-height: 0;
+            box-shadow: 0 0 30px rgba(0,0,0,1);
+        }
 
-    canvas {
-        width: 42vw; 
-        max-width: 190px; 
-        aspect-ratio: 9/16;
-        display: block;
-        cursor: move;
-    }
+        canvas {
+            width: 45vw; max-width: 210px; aspect-ratio: 9/16;
+            cursor: move; display: block;
+        }
 
-    .canvas-hint {
-        position: absolute;
-        bottom: 5px;
-        width: 100%;
-        text-align: center;
-        font-size: 8px;
-        color: var(--accent);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        pointer-events: none;
-        opacity: 0.6;
-    }
+        /* 3. ACCESSIBLE SCRUBBER */
+        .playback-bar {
+            width: 95%; max-width: 400px; margin-top: 12px;
+            display: flex; align-items: center; gap: 15px;
+        }
 
-    .playback-bar {
-        width: 100%;
-        max-width: 400px;
-        margin-top: 10px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
+        #playBtn { font-size: 45px; color: var(--accent); cursor: pointer; }
+        
+        #timeline { 
+            flex: 1; height: 12px; accent-color: var(--accent); 
+            cursor: pointer; border-radius: 6px; 
+        }
 
-    #playBtn { 
-        font-size: 38px; 
-        color: var(--accent); 
-        cursor: pointer; 
-        transition: 0.2s; 
-    }
-    
-    #playBtn:hover { transform: scale(1.1); }
+        /* 4. NAVIGATION */
+        .nav-tabs {
+            display: flex; justify-content: space-around;
+            background: #080808; padding: 15px 0; border-bottom: 1px solid var(--border);
+        }
 
-    input[type="range"] {
-        flex: 1;
-        accent-color: var(--accent);
-        cursor: pointer;
-        height: 4px;
-    }
+        .nav-tabs span { font-size: 26px; color: #444; cursor: pointer; transition: 0.3s; }
+        .nav-tabs span.active { color: var(--accent); text-shadow: 0 0 15px rgba(0,255,136,0.5); }
 
-    /* NAVIGATION TABS */
-    .nav-tabs {
-        display: flex;
-        justify-content: space-around;
-        background: var(--bg);
-        padding: 15px 0;
-        border-bottom: 1px solid var(--border);
-    }
+        /* 5. PANELS */
+        .settings-area { background: var(--bg); overflow-y: auto; padding: 20px; padding-bottom: 100px; }
+        .panel { display: none; }
+        .panel.active { display: block; animation: fadeIn 0.3s ease; }
 
-    .nav-tabs span {
-        font-size: 26px;
-        color: #444;
-        cursor: pointer;
-        transition: 0.3s;
-        padding: 5px 15px;
-    }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .nav-tabs span.active {
-        color: var(--accent);
-        text-shadow: 0 0 10px rgba(0,255,136,0.3);
-        border-bottom: 2px solid var(--accent);
-    }
+        .control-group { margin-bottom: 20px; }
+        label { display: flex; justify-content: space-between; font-size: 10px; color: #888; margin-bottom: 8px; text-transform: uppercase; }
+        label span { color: var(--accent); }
 
-    /* SETTINGS AREA */
-    .settings-area {
-        background: var(--bg);
-        overflow-y: auto;
-        padding: 20px;
-        padding-bottom: 100px;
-    }
+        input[type="text"], textarea, select, input[type="number"] {
+            width: 100%; background: var(--panel); border: 1px solid var(--border);
+            color: #fff; padding: 12px; border-radius: 8px; font-size: 13px;
+        }
 
-    .panel { display: none; animation: fadeIn 0.3s ease-in-out; }
-    .panel.active { display: block; }
+        textarea { height: 70px; resize: none; border-left: 3px solid var(--accent); }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(5px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+        .btn-main {
+            background: var(--accent); color: #000; border: none; padding: 16px;
+            border-radius: 8px; font-weight: 700; width: 100%; cursor: pointer;
+            text-transform: uppercase; margin-top: 10px;
+        }
 
-    h3 { font-size: 14px; margin-bottom: 15px; color: var(--accent); text-transform: uppercase; }
-
-    .control-group { margin-bottom: 20px; }
-    
-    label {
-        display: flex;
-        justify-content: space-between;
-        font-size: 10px;
-        text-transform: uppercase;
-        color: var(--text-dim);
-        margin-bottom: 8px;
-        letter-spacing: 1px;
-    }
-
-    label span { color: var(--accent); }
-
-    input[type="text"], textarea, select, input[type="number"] {
-        width: 100%;
-        background: var(--panel);
-        border: 1px solid var(--border);
-        color: #fff;
-        padding: 12px;
-        border-radius: 6px;
-        font-family: inherit;
-        font-size: 13px;
-    }
-
-    textarea { height: 70px; resize: none; border-left: 3px solid var(--accent); }
-
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-    .btn-main {
-        background: var(--accent);
-        color: #000;
-        border: none;
-        padding: 16px;
-        border-radius: 8px;
-        font-weight: 700;
-        cursor: pointer;
-        width: 100%;
-        margin-top: 10px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: 0.3s;
-    }
-
-    .btn-main:active { transform: scale(0.98); }
-
-    .color-input { height: 40px; padding: 2px; cursor: pointer; }
-
-    /* EXPORT OVERLAY */
-    #exportOverlay {
-        position: fixed; inset: 0;
-        background: rgba(0,0,0,0.95);
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-    }
-
-    .loader {
-        width: 60px; height: 60px;
-        border: 4px solid #222;
-        border-top: 4px solid var(--accent);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-</style>
+        #exportOverlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
+        }
+    </style>
 </head>
-<body oncontextmenu="return false;"> <div id="exportOverlay">
-    <div class="loader"></div>
-    <h2 style="margin: 20px 0 5px">VOIDUPLIFT EXPORT</h2>
-    <p id="exportProgress" style="color: var(--accent); font-weight: bold;">0%</p>
-    <p style="font-size: 10px; color: #666; margin-top: 10px">DO NOT CLOSE TAB WHILE RENDERING</p>
+<body oncontextmenu="return false;">
+
+<div id="exportOverlay">
+    <div style="width:50px; height:50px; border:4px solid #222; border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite"></div>
+    <h2 style="margin-top:20px">RENDERING VOID</h2>
+    <p id="exportProgress" style="color:var(--accent); font-size:24px; font-weight:bold">0%</p>
 </div>
 
 <div class="app-container">
-    
     <section class="preview-section">
         <div id="canvasWrapper">
             <canvas id="mainCanvas" width="1080" height="1920"></canvas>
-            <div class="canvas-hint">Drag Text to Reposition</div>
         </div>
-        
         <div class="playback-bar">
             <span id="playBtn" class="material-icons">play_circle_filled</span>
             <input type="range" id="timeline" min="0" step="0.01" value="0">
         </div>
-        <div id="timer" style="font-size: 11px; color: #444; margin-top: 5px">0.0s / 8.5s</div>
+        <div id="timer" style="font-size:11px; color:#444; margin-top:8px">0.0s / 8.5s</div>
     </section>
 
     <nav class="nav-tabs">
-        <span class="material-icons active" onclick="showPanel(this, 'text-panel')">title</span>
-        <span class="material-icons" onclick="showPanel(this, 'style-panel')">palette</span>
-        <span class="material-icons" onclick="showPanel(this, 'media-panel')">photo_library</span>
-        <span class="material-icons" onclick="showPanel(this, 'fx-panel')">auto_awesome</span>
-        <span class="material-icons" onclick="startExport()" style="color:var(--accent)">cloud_download</span>
+        <span class="material-icons active" onclick="showPanel(this, 'text-p')">title</span>
+        <span class="material-icons" onclick="showPanel(this, 'style-p')">format_size</span>
+        <span class="material-icons" onclick="showPanel(this, 'media-p')">image</span>
+        <span class="material-icons" onclick="showPanel(this, 'fx-p')">auto_awesome</span>
+        <span class="material-icons" onclick="startExport()" style="color:var(--accent)">download</span>
     </nav>
 
     <main class="settings-area">
-        <div id="text-panel" class="panel active">
-            <h3>Content Editor</h3>
-            <div class="control-group">
-                <label>Main Headline</label>
-                <textarea id="mainText">THE UNIVERSE IS WITHIN YOU.</textarea>
-            </div>
-            <div class="control-group">
-                <label>Entrance Animation</label>
-                <select id="animType">
-                    <option value="fade">Smooth Fade</option>
-                    <option value="slide">Slide From Bottom</option>
-                    <option value="typewriter">Typewriter</option>
-                    <option value="none">Static</option>
-                </select>
-            </div>
+        <div id="text-p" class="panel active">
+            <label>Headline (Auto-Wrap)</label>
+            <textarea id="mainText">THE UNIVERSE IS WITHIN YOU.</textarea>
         </div>
 
-        <div id="style-panel" class="panel">
-            <h3>Visual Style</h3>
+        <div id="style-p" class="panel">
+            <div class="control-group">
+                <label>Font Size: <span id="sizeVal">120</span>px</label>
+                <input type="range" id="fontSize" min="30" max="450" value="120">
+            </div>
             <div class="control-group">
                 <label>Typography</label>
                 <select id="fontFam">
                     <option value="Anton">Anton (Heavy)</option>
-                    <option value="Bebas Neue">Bebas (Clean)</option>
-                    <option value="Cinzel">Cinzel (Luxury)</option>
+                    <option value="Orbitron">Orbitron (Cyber)</option>
+                    <option value="Syncopate">Syncopate (Wide)</option>
                     <option value="Pacifico">Pacifico (Script)</option>
-                    <option value="Oswald">Oswald (Modern)</option>
                 </select>
-            </div>
-            <div class="grid-2">
-                <div class="control-group">
-                    <label>Size: <span id="sizeVal">120</span>px</label>
-                    <input type="range" id="fontSize" min="30" max="400" value="120">
-                </div>
-                <div class="control-group">
-                    <label>Text Color</label>
-                    <input type="color" id="fontColor" class="color-input" value="#ffffff">
-                </div>
-            </div>
-            <div class="control-group">
-                <label>Letter Spacing: <span id="spacingVal">0</span></label>
-                <input type="range" id="letterSpacing" min="-10" max="50" value="0">
             </div>
         </div>
 
-        <div id="media-panel" class="panel">
-            <h3>Media & Layers</h3>
-            <div class="control-group">
-                <label>Centered Image Overlay</label>
-                <input type="file" id="imgUpload" accept="image/*">
-            </div>
-            <div class="control-group">
-                <label>Image Scale: <span id="scaleVal">80</span>%</label>
-                <input type="range" id="imgScale" min="10" max="200" value="80">
-            </div>
-            <div class="control-group">
-                <label>Audio Track (MP3/WAV)</label>
-                <input type="file" id="audioUpload" accept="audio/*">
-            </div>
-            <div class="control-group">
-                <label>Video Duration (Seconds)</label>
-                <input type="number" id="vidDur" value="6" min="1" max="60">
+        <div id="media-p" class="panel">
+            <label>Upload Background</label>
+            <input type="file" id="imgUpload" accept="image/*">
+            <div class="control-group" style="margin-top:15px">
+                <label>Duration (Seconds)</label>
+                <input type="number" id="vidDur" value="6">
             </div>
         </div>
 
-        <div id="fx-panel" class="panel">
-            <h3>Creative Effects</h3>
-            <div class="control-group">
-                <label>Neon Glow Strength</label>
-                <input type="range" id="glowSize" min="0" max="60" value="20">
-            </div>
-            <div class="control-group">
-                <label>Beat-Sync Pulse</label>
-                <select id="pulseEffect">
-                    <option value="0">Disabled</option>
-                    <option value="1">Soft Pulse</option>
-                    <option value="2">Aggressive Bounce</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label>End Credits</label>
-                <input type="text" id="creditName" value="VOIDUPLIFT ENGINE">
-            </div>
-            <button class="btn-main" onclick="applyMagicTheme()">✨ AI Magic Theme</button>
+        <div id="fx-p" class="panel">
+            <label>End Screen Credits</label>
+            <input type="text" id="creditName" value="VOIDUPLIFT ENGINE">
+            <button class="btn-main" onclick="applyMagicTheme()">✨ Magic Style</button>
         </div>
     </main>
 </div>
 
 <script>
-    /**
-     * ENGINE STATE
-     */
     const canvas = document.getElementById('mainCanvas');
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d');
     const timeline = document.getElementById('timeline');
-    
     let overlayImg = new Image();
-    let audio = null;
-    let isPlaying = false;
-    let currentTime = 0;
-    let lastFrameTime = 0;
+    let isPlaying = false, currentTime = 0, lastTime = 0;
 
     const state = {
         text: "THE UNIVERSE IS WITHIN YOU.",
-        x: 540, y: 960,
-        size: 120,
-        font: "Anton",
-        color: "#ffffff",
-        glow: 20,
-        imgScale: 0.8,
-        duration: 6,
-        endScreenDur: 2.5,
-        spacing: 0,
-        anim: "fade",
-        pulse: 0,
-        credits: "VOIDUPLIFT ENGINE",
-        isDragging: false
+        x: 540, y: 960, size: 120, font: "Anton", color: "#ffffff",
+        duration: 6, endDur: 2.5, credits: "VOIDUPLIFT ENGINE"
     };
 
     /**
-     * RENDER SYSTEM
+     * AUTO-WRAP TEXT LOGIC
+     */
+    function wrapText(context, text, x, y, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let line = '';
+        let currentY = y;
+
+        for (let n = 0; n < words.length; n++) {
+            let testLine = line + words[n] + ' ';
+            let metrics = context.measureText(testLine);
+            if (metrics.width > maxWidth && n > 0) {
+                context.fillText(line, x, currentY);
+                line = words[n] + ' ';
+                currentY += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        context.fillText(line, x, currentY);
+    }
+
+    /**
+     * RENDER ENGINE
      */
     function render(t) {
         ctx.fillStyle = "#000";
         ctx.fillRect(0, 0, 1080, 1920);
 
-        const totalTime = state.duration + state.endScreenDur;
-        const isEndScreen = t > state.duration;
-
-        let pulseFactor = 1;
-        if(state.pulse > 0 && isPlaying) {
-            pulseFactor = 1 + (Math.sin(t * 12) * (state.pulse * 0.04));
-        }
-
-        if(!isEndScreen) {
-            // Media Layer
-            if(overlayImg.src) {
-                const aspect = overlayImg.width / overlayImg.height;
-                const w = 1080 * state.imgScale * pulseFactor;
-                const h = w / aspect;
-                ctx.save();
-                ctx.shadowBlur = 40;
-                ctx.shadowColor = "rgba(0,0,0,0.8)";
-                ctx.drawImage(overlayImg, (1080-w)/2, (1920-h)/2, w, h);
-                ctx.restore();
+        if (t < state.duration) {
+            // 1. IMAGE COVER (EXACT FIT)
+            if (overlayImg.src && overlayImg.complete) {
+                const scale = Math.max(1080 / overlayImg.width, 1920 / overlayImg.height);
+                const w = overlayImg.width * scale;
+                const h = overlayImg.height * scale;
+                ctx.drawImage(overlayImg, (1080 - w) / 2, (1920 - h) / 2, w, h);
             }
 
-            // Text Layer
+            // 2. TEXT LAYER WITH DRAG & WRAP
             ctx.save();
-            let alpha = 1;
-            let drawY = state.y;
-
-            if(state.anim === "fade") alpha = Math.min(1, t / 1.5);
-            if(state.anim === "slide") drawY = state.y + (Math.max(0, 1.2 - t) * 400);
-            
-            ctx.globalAlpha = alpha;
-            ctx.font = `${state.size * pulseFactor}px "${state.font}"`;
             ctx.fillStyle = state.color;
+            ctx.font = `${state.size}px "${state.font}"`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.letterSpacing = `${state.spacing}px`;
-
-            if(state.glow > 0) {
-                ctx.shadowColor = state.color;
-                ctx.shadowBlur = state.glow;
-            }
-
-            let displayText = state.text;
-            if(state.anim === "typewriter") {
-                displayText = state.text.substring(0, Math.floor(t * 18));
-            }
-
-            ctx.fillText(displayText, state.x, drawY);
+            ctx.shadowColor = "rgba(0,0,0,0.8)";
+            ctx.shadowBlur = 20;
+            wrapText(ctx, state.text, state.x, state.y, 980, state.size * 1.2);
             ctx.restore();
         } else {
-            // End Screen
+            // 3. VOIDUPLIFT END SCREEN
             const et = t - state.duration;
             ctx.fillStyle = "#050505";
             ctx.fillRect(0,0,1080,1920);
-            ctx.textAlign = "center";
             
             ctx.globalAlpha = Math.min(1, et * 2);
             ctx.fillStyle = "#00ff88";
-            ctx.font = "bold 95px Anton";
+            ctx.font = "bold 100px Anton";
+            ctx.textAlign = "center";
             ctx.fillText("VOIDUPLIFT", 540, 920);
 
-            ctx.globalAlpha = Math.min(1, (et - 0.5) * 2);
+            ctx.globalAlpha = Math.min(1, (et-0.5)*2);
             ctx.fillStyle = "#fff";
             ctx.font = "40px Poppins";
-            ctx.fillText(state.credits.toUpperCase(), 540, 1020);
+            ctx.fillText(state.credits.toUpperCase(), 540, 1030);
         }
     }
 
-    /**
-     * UI & NAVIGATION FIX
-     */
-    function showPanel(el, id) {
-        // Remove all active states
+    function showPanel(btn, id) {
         document.querySelectorAll('.nav-tabs span').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        
-        // Add active states
-        el.classList.add('active');
-        const target = document.getElementById(id);
-        if(target) target.classList.add('active');
+        btn.classList.add('active');
+        document.getElementById(id).classList.add('active');
     }
 
     /**
-     * AI MAGIC THEME
+     * INTERACTIONS
      */
-    function applyMagicTheme() {
-        const themes = [
-            { font: 'Cinzel', color: '#ffd700', glow: 30, spacing: 5, text: "ETERNAL LUXURY" },
-            { font: 'Pacifico', color: '#ff0077', glow: 15, spacing: 0, text: "Neon Dreams" },
-            { font: 'Anton', color: '#00ff88', glow: 40, spacing: 2, text: "VOID ASCENSION" },
-            { font: 'Oswald', color: '#ffffff', glow: 50, spacing: 15, text: "MINIMALIST" }
-        ];
-
-        const theme = themes[Math.floor(Math.random() * themes.length)];
-        
-        // Update State
-        Object.assign(state, theme);
-
-        // Update UI Elements
-        document.getElementById('fontFam').value = theme.font;
-        document.getElementById('fontColor').value = theme.color;
-        document.getElementById('glowSize').value = theme.glow;
-        document.getElementById('letterSpacing').value = theme.spacing;
-        document.getElementById('mainText').value = theme.text;
-        document.getElementById('spacingVal').innerText = theme.spacing;
-
+    let isDown = false;
+    canvas.onmousedown = () => isDown = true;
+    window.onmouseup = () => isDown = false;
+    canvas.onmousemove = (e) => {
+        if (!isDown) return;
+        const r = canvas.getBoundingClientRect();
+        state.x = (e.clientX - r.left) * (1080 / r.width);
+        state.y = (e.clientY - r.top) * (1920 / r.height);
         render(currentTime);
-    }
+    };
 
-    /**
-     * INPUT BINDING
-     */
-    function setupInputs() {
-        const binds = [
-            ['mainText', 'text'], ['fontSize', 'size', 'sizeVal'],
-            ['fontFam', 'font'], ['fontColor', 'color'],
-            ['vidDur', 'duration'], ['letterSpacing', 'spacing', 'spacingVal'],
-            ['glowSize', 'glow'], ['animType', 'anim'],
-            ['pulseEffect', 'pulse'], ['creditName', 'credits']
-        ];
-
-        binds.forEach(([id, key, valId]) => {
-            const el = document.getElementById(id);
-            el.oninput = () => {
-                state[key] = el.type === 'range' || el.type === 'number' ? parseFloat(el.value) : el.value;
-                if(valId) document.getElementById(valId).innerText = el.value;
-                updateTimelineBounds();
-                render(currentTime);
-            };
-        });
-
-        document.getElementById('imgScale').oninput = (e) => {
-            state.imgScale = e.target.value / 100;
-            document.getElementById('scaleVal').innerText = e.target.value;
-            render(currentTime);
-        };
-
-        document.getElementById('imgUpload').onchange = (e) => {
-            const reader = new FileReader();
-            reader.onload = (f) => { 
-                overlayImg = new Image();
-                overlayImg.src = f.target.result; 
-                overlayImg.onload = () => render(currentTime); 
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        };
-
-        document.getElementById('audioUpload').onchange = (e) => {
-            if(audio) audio.pause();
-            audio = new Audio(URL.createObjectURL(e.target.files[0]));
-        };
-    }
-
-    /**
-     * INTERACTION (DRAG)
-     */
-    let isMouseDown = false;
-    canvas.addEventListener('mousedown', () => isMouseDown = true);
-    window.addEventListener('mouseup', () => isMouseDown = false);
-    canvas.addEventListener('mousemove', (e) => {
-        if(!isMouseDown) return;
-        const rect = canvas.getBoundingClientRect();
-        state.x = (e.clientX - rect.left) * (1080 / rect.width);
-        state.y = (e.clientY - rect.top) * (1920 / rect.height);
+    document.getElementById('fontSize').oninput = (e) => {
+        state.size = e.target.value;
+        document.getElementById('sizeVal').innerText = e.target.value;
         render(currentTime);
-    });
+    };
+    document.getElementById('mainText').oninput = (e) => { state.text = e.target.value; render(currentTime); };
+    document.getElementById('fontFam').onchange = (e) => { state.font = e.target.value; render(currentTime); };
+    document.getElementById('vidDur').oninput = (e) => { state.duration = parseFloat(e.target.value); updateTimeline(); };
+    document.getElementById('creditName').oninput = (e) => { state.credits = e.target.value; };
+
+    document.getElementById('imgUpload').onchange = (e) => {
+        const reader = new FileReader();
+        reader.onload = (f) => { 
+            overlayImg = new Image();
+            overlayImg.src = f.target.result; 
+            overlayImg.onload = () => render(currentTime); 
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    };
 
     /**
      * PLAYBACK
@@ -557,63 +297,57 @@
     document.getElementById('playBtn').onclick = () => {
         isPlaying = !isPlaying;
         document.getElementById('playBtn').innerText = isPlaying ? "pause_circle_filled" : "play_circle_filled";
-        
-        if(isPlaying) {
-            if(audio) { audio.currentTime = currentTime; audio.play(); }
-            lastFrameTime = performance.now();
-            requestAnimationFrame(playbackLoop);
-        } else {
-            if(audio) audio.pause();
-        }
+        if (isPlaying) { lastTime = performance.now(); requestAnimationFrame(loop); }
     };
 
-    function playbackLoop(now) {
-        if(!isPlaying) return;
-        let dt = (now - lastFrameTime) / 1000;
-        currentTime += dt;
-        lastFrameTime = now;
-
-        const total = state.duration + state.endScreenDur;
-        if(currentTime >= total) {
-            currentTime = 0;
-            isPlaying = false;
-            document.getElementById('playBtn').innerText = "play_circle_filled";
-            if(audio) audio.pause();
-        }
-
+    function loop(now) {
+        if (!isPlaying) return;
+        currentTime += (now - lastTime) / 1000;
+        lastTime = now;
+        if (currentTime > state.duration + state.endDur) currentTime = 0;
         timeline.value = currentTime;
-        updateTimerLabel();
+        document.getElementById('timer').innerText = `${currentTime.toFixed(1)}s / ${(state.duration+state.endDur).toFixed(1)}s`;
         render(currentTime);
-        requestAnimationFrame(playbackLoop);
+        requestAnimationFrame(loop);
     }
 
-    function updateTimelineBounds() {
-        timeline.max = state.duration + state.endScreenDur;
-        updateTimerLabel();
-    }
+    function updateTimeline() { timeline.max = state.duration + state.endDur; }
+    timeline.oninput = () => { currentTime = parseFloat(timeline.value); render(currentTime); };
 
-    function updateTimerLabel() {
-        const total = state.duration + state.endScreenDur;
-        document.getElementById('timer').innerText = `${currentTime.toFixed(1)}s / ${total.toFixed(1)}s`;
-    }
-
-    timeline.oninput = () => {
-        currentTime = parseFloat(timeline.value);
+    function applyMagicTheme() {
+        state.font = "Orbitron"; state.size = 150; state.text = "LEVEL UP";
+        document.getElementById('fontFam').value = "Orbitron";
+        document.getElementById('fontSize').value = 150;
+        document.getElementById('mainText').value = "LEVEL UP";
         render(currentTime);
-    };
+    }
 
-    /**
-     * EXPORT SYSTEM
-     */
     async function startExport() {
-        isPlaying = false;
-        const overlay = document.getElementById('exportOverlay');
-        overlay.style.display = 'flex';
-
-        const fps = 30;
-        const totalFrames = (state.duration + state.endScreenDur) * fps;
-        const stream = canvas.captureStream(fps);
-        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 8000000 });
+        document.getElementById('exportOverlay').style.display = 'flex';
+        const stream = canvas.captureStream(30);
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
         const chunks = [];
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob(chunks));
+            link.download = `VoidReel_Final.webm`;
+            link.click();
+            document.getElementById('exportOverlay').style.display = 'none';
+        };
+        recorder.start();
+        const frames = (state.duration + state.endDur) * 30;
+        for(let i=0; i<=frames; i++) {
+            render(i/30);
+            document.getElementById('exportProgress').innerText = Math.round((i/frames)*100) + "%";
+            await new Promise(r => requestAnimationFrame(r));
+        }
+        recorder.stop();
+    }
 
-        recorder.ondataavailable = e => chunks.push
+    window.onload = () => { updateTimeline(); render(0); };
+</script>
+
+<style> @keyframes spin { to { transform: rotate(360deg); } } </style>
+</body>
+</html>
