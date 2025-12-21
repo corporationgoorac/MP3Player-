@@ -5,333 +5,225 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VoidUpLift Reels Editor Pro</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Anton&family=Bebas+Neue&family=Playfair+Display&family=Oswald&family=Pacifico&family=Cinzel&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Anton&family=Bebas+Neue&family=Playfair+Display&family=Oswald&family=Pacifico&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <style>
-/* ---------- RESET & CORE ---------- */
 *{ box-sizing:border-box; margin:0; padding:0; }
 body{ background:#000; color:#fff; font-family:'Poppins', sans-serif; height:100vh; overflow:hidden; }
-.app{ display:flex; flex-direction:column; height:100vh; max-width: 500px; margin: 0 auto; border: 1px solid #222; position: relative; }
+.app{ display:flex; flex-direction:column; height:100vh; max-width:500px; margin:auto; border:1px solid #222; position:relative; }
 
-/* ---------- PREVIEW AREA ---------- */
-.preview{ 
-    display:flex; 
-    flex-direction:column; 
-    align-items:center; 
-    padding:10px; 
-    background:#111; 
-    flex-shrink: 0;
-}
-canvas{ 
-    width:auto; 
-    height:35vh; 
-    aspect-ratio:9/16; 
-    border-radius:12px; 
-    border:2px solid #333; 
-    background:#000; 
-    cursor: crosshair; 
-    touch-action: none; 
-}
-.play-btn-ui{ font-size:36px; margin-top:5px; cursor:pointer; color: #00f2ea; }
-#timeline { width: 90%; margin: 8px 0; accent-color: #00f2ea; cursor: pointer; height: 14px; }
+.preview{ padding:10px; background:#111; text-align:center; }
+canvas{ height:35vh; aspect-ratio:9/16; border-radius:12px; border:2px solid #333; background:#000; touch-action:none; }
 
-/* ---------- ICON NAVIGATION ---------- */
-.iconbar{ 
-    display:flex; 
-    justify-content:space-around; 
-    padding:10px 0; 
-    background:#080808; 
-    border-top:1px solid #222;
-}
-.iconbar span{ font-size:24px; cursor:pointer; color: #666; transition: 0.3s; }
-.iconbar span.active-tab { color: #00f2ea; }
+.play-btn-ui{ font-size:36px; color:#00f2ea; cursor:pointer; }
+#timeline{ width:90%; accent-color:#00f2ea; }
 
-/* ---------- CONTROLS AREA ---------- */
-.controls{ 
-    flex:1; 
-    background:#080808; 
-    overflow-y:auto; 
-    padding:15px; 
-}
-.panel{ display:none; animation: fadeIn 0.2s ease; }
+.iconbar{ display:flex; justify-content:space-around; padding:10px; background:#080808; border-top:1px solid #222; }
+.iconbar span{ font-size:24px; color:#666; cursor:pointer; }
+.iconbar span.active-tab{ color:#00f2ea; }
+
+.controls{ flex:1; padding:15px; background:#080808; overflow-y:auto; }
+.panel{ display:none; }
 .panel.active{ display:block; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-label { display: block; margin-bottom: 4px; font-size: 10px; color: #00f2ea; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
-textarea, input[type="text"], input[type="number"], select { 
-    width:100%; 
-    background:#151515; 
-    border:1px solid #333; 
-    color:#fff; 
-    padding:10px; 
-    margin-bottom:12px; 
-    border-radius: 6px; 
-    font-size: 13px;
-    outline: none; 
-}
-input[type="range"] { width: 100%; margin-bottom: 15px; accent-color: #00f2ea; }
-input[type="color"] { width: 100%; height: 35px; background: none; border: 1px solid #333; cursor: pointer; border-radius: 6px; }
+label{ font-size:10px; color:#00f2ea; margin-bottom:4px; display:block; }
+textarea,input,select{ width:100%; background:#151515; color:#fff; border:1px solid #333; padding:10px; margin-bottom:12px; border-radius:6px; }
+input[type=range]{ accent-color:#00f2ea; }
+input[type=color]{ height:35px; }
 
-.status-bar{ text-align:center; font-size:11px; color:#00f2ea; padding:8px; background: #050505; }
+.status-bar{ text-align:center; font-size:11px; padding:8px; background:#050505; color:#00f2ea; }
 
-#loadingOverlay {
-    display: none;
-    position: absolute;
-    top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.9);
-    z-index: 100;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+#loadingOverlay{
+    display:none; position:absolute; inset:0;
+    background:rgba(0,0,0,.9);
+    z-index:99; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
 }
 </style>
 </head>
 
 <body>
 <div class="app">
-    <div id="loadingOverlay">
-        <div id="progressText" style="font-size: 18px; color: #00f2ea; margin-bottom: 10px;">Rendering 0%</div>
-        <p style="font-size: 12px; color: #666;">Merging tracks and frames...</p>
+
+<div id="loadingOverlay">
+    <div id="progressText" style="color:#00f2ea;font-size:18px;">Rendering 0%</div>
+    <p style="color:#666;font-size:12px;">Exporting video...</p>
+</div>
+
+<div class="preview">
+    <canvas id="canvas" width="1080" height="1920"></canvas>
+    <div style="display:flex;justify-content:center;gap:10px;align-items:center;">
+        <span id="playBtn" class="material-icons play-btn-ui">play_circle_filled</span>
+        <input type="range" id="timeline" min="0" step="0.01" value="0">
     </div>
+</div>
 
-    <div class="preview">
-        <canvas id="canvas" width="1080" height="1920"></canvas>
-        <div style="display:flex; align-items:center; width:100%; justify-content:center; gap:10px;">
-            <span id="playBtn" class="material-icons play-btn-ui">play_circle_filled</span>
-            <input type="range" id="timeline" min="0" max="17" step="0.01" value="0">
-        </div>
-    </div>
+<div class="iconbar">
+    <span class="material-icons active-tab" onclick="showPanel('textP',this)">text_fields</span>
+    <span class="material-icons" onclick="showPanel('fontP',this)">font_download</span>
+    <span class="material-icons" onclick="showPanel('imgP',this)">image</span>
+    <span class="material-icons" onclick="showPanel('audioP',this)">music_note</span>
+    <span class="material-icons" id="exportBtn" style="color:#00f2ea">download</span>
+</div>
 
-    <div class="iconbar">
-        <span class="material-icons active-tab" onclick="showPanel('textP', this)">text_fields</span>
-        <span class="material-icons" onclick="showPanel('fontP', this)">font_download</span>
-        <span class="material-icons" onclick="showPanel('imgP', this)">image</span>
-        <span class="material-icons" onclick="showPanel('audioP', this)">music_note</span>
-        <span class="material-icons" style="color:#00f2ea" id="exportBtn">download</span>
-    </div>
+<div class="controls">
+<div id="textP" class="panel active">
+    <label>Text</label>
+    <textarea id="textInput">VoidUpLift</textarea>
 
-    <div class="controls">
-        <div id="textP" class="panel active">
-            <label>Text Content</label>
-            <textarea id="textInput" rows="2">VoidUpLift</textarea>
-            
-            <label>Font Size</label>
-            <input type="range" id="fontSizeRange" min="30" max="400" value="100">
-            
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div><label>Color</label><input type="color" id="textColorPicker" value="#ffffff"></div>
-                <div><label>Speed</label><input type="range" id="typingSpeedRange" min="5" max="60" value="20"></div>
-            </div>
-            
-            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:10px;">
-                <input type="checkbox" id="typingToggle"> Enable Typing Effect
-            </label>
-        </div>
+    <label>Font Size</label>
+    <input type="range" id="fontSizeRange" min="30" max="300" value="100">
 
-        <div id="fontP" class="panel">
-            <label>Typography</label>
-            <select id="fontFamilySelect" size="5">
-                <option value="Poppins" selected>Poppins</option>
-                <option value="Anton">Anton</option>
-                <option value="Bebas Neue">Bebas Neue</option>
-                <option value="Playfair Display">Playfair Display</option>
-                <option value="Oswald">Oswald</option>
-                <option value="Pacifico">Pacifico</option>
-            </select>
-            
-            <label>Entrance Animation</label>
-            <select id="animSelect">
-                <option value="fade">Smooth Fade</option>
-                <option value="slide">Cinematic Rise</option>
-                <option value="pop">Pop Zoom</option>
-                <option value="bounce">Bouncy</option>
-            </select>
-        </div>
+    <label>Color</label>
+    <input type="color" id="textColorPicker" value="#ffffff">
 
-        <div id="imgP" class="panel">
-            <label>Background Image</label>
-            <input type="file" id="bgUpload" accept="image/*">
-            <label>Video Duration (Seconds)</label>
-            <input type="number" id="videoDuration" value="17">
-        </div>
+    <label><input type="checkbox" id="typingToggle"> Typing Effect</label>
+    <label>Typing Speed</label>
+    <input type="range" id="typingSpeedRange" min="5" max="60" value="20">
+</div>
 
-        <div id="audioP" class="panel">
-            <label>Background Track</label>
-            <input type="file" id="audioUpload" accept="audio/*">
-        </div>
-    </div>
+<div id="fontP" class="panel">
+    <label>Font</label>
+    <select id="fontFamilySelect">
+        <option>Poppins</option>
+        <option>Anton</option>
+        <option>Bebas Neue</option>
+        <option>Oswald</option>
+        <option>Pacifico</option>
+    </select>
 
-    <div class="status-bar" id="statusMsg">Ready to create</div>
+    <label>Animation</label>
+    <select id="animSelect">
+        <option value="fade">Fade</option>
+        <option value="slide">Slide</option>
+        <option value="pop">Pop</option>
+        <option value="bounce">Bounce</option>
+    </select>
+</div>
+
+<div id="imgP" class="panel">
+    <label>Background Image</label>
+    <input type="file" id="bgUpload" accept="image/*">
+
+    <label>Duration (sec)</label>
+    <input type="number" id="videoDuration" value="17">
+</div>
+
+<div id="audioP" class="panel">
+    <label>Audio</label>
+    <input type="file" id="audioUpload" accept="audio/*">
+</div>
+</div>
+
+<div class="status-bar">Ready</div>
 </div>
 
 <script>
 const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d", {alpha: false});
-const timeline = document.getElementById("timeline");
-const loadingOverlay = document.getElementById("loadingOverlay");
-const progressText = document.getElementById("progressText");
+const ctx = canvas.getContext("2d");
 
-let bgImg = new Image(), userAudio = null;
-let textStr = "VoidUpLift", currentFont = "Poppins";
-let fSize = 100, tColor = "#ffffff", totalSecs = 17;
-let textX = 100, textY = 400, animationType = "fade";
-let useTyping = false, typeSpeed = 20;
-let currentTime = 0, isPlaying = false, lastFrameTime = 0;
+let bgImg = new Image();
+let textStr="VoidUpLift",font="Poppins",size=100,color="#fff";
+let x=100,y=400,anim="fade",typing=false,speed=20;
+let time=0,duration=17,playing=false,last=0;
 
-function showPanel(id, iconEl) {
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.iconbar span').forEach(s => s.classList.remove('active-tab'));
-    document.getElementById(id).classList.add('active');
-    iconEl.classList.add('active-tab');
+function showPanel(id,el){
+ document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+ document.querySelectorAll('.iconbar span').forEach(i=>i.classList.remove('active-tab'));
+ document.getElementById(id).classList.add('active'); el.classList.add('active-tab');
 }
 
-function updateFrame() { drawCanvas(currentTime); }
+textInput.oninput=e=>{textStr=e.target.value;draw()};
+fontSizeRange.oninput=e=>{size=e.target.value;draw()};
+textColorPicker.oninput=e=>{color=e.target.value;draw()};
+fontFamilySelect.onchange=e=>{font=e.target.value;draw()};
+animSelect.onchange=e=>{anim=e.target.value;draw()};
+typingToggle.onchange=e=>{typing=e.target.checked;draw()};
+typingSpeedRange.oninput=e=>{speed=e.target.value;draw()};
+videoDuration.oninput=e=>{duration=+e.target.value;timeline.max=duration;draw()};
+timeline.oninput=e=>{time=+e.target.value;draw()};
+bgUpload.onchange=e=>{bgImg.src=URL.createObjectURL(e.target.files[0]);bgImg.onload=draw};
 
-// Listeners
-textInput.oninput = e => { textStr = e.target.value; updateFrame(); };
-fontSizeRange.oninput = e => { fSize = parseInt(e.target.value); updateFrame(); };
-textColorPicker.oninput = e => { tColor = e.target.value; updateFrame(); };
-fontFamilySelect.onchange = e => { currentFont = e.target.value; updateFrame(); };
-animSelect.onchange = e => { animationType = e.target.value; updateFrame(); };
-typingToggle.onchange = e => { useTyping = e.target.checked; updateFrame(); };
-typingSpeedRange.oninput = e => { typeSpeed = parseInt(e.target.value); updateFrame(); };
-videoDuration.oninput = e => { 
-    totalSecs = Math.max(1, +e.target.value); 
-    timeline.max = totalSecs; 
-    updateFrame(); 
-};
-timeline.oninput = e => { currentTime = parseFloat(e.target.value); updateFrame(); };
-bgUpload.onchange = e => { if(e.target.files[0]) { bgImg.src = URL.createObjectURL(e.target.files[0]); bgImg.onload = updateFrame; } };
-audioUpload.onchange = e => { if(e.target.files[0]) userAudio = new Audio(URL.createObjectURL(e.target.files[0])); };
-
-// Dragging
-let isDragging = false;
-canvas.onpointerdown = () => isDragging = true;
-window.onpointerup = () => isDragging = false;
-window.onpointermove = e => {
-    if(!isDragging) return;
-    const rect = canvas.getBoundingClientRect();
-    textX = (e.clientX - rect.left) * (1080 / rect.width);
-    textY = (e.clientY - rect.top) * (1920 / rect.height);
-    updateFrame();
+let drag=false;
+canvas.onpointerdown=()=>drag=true;
+window.onpointerup=()=>drag=false;
+window.onpointermove=e=>{
+ if(!drag)return;
+ const r=canvas.getBoundingClientRect();
+ x=(e.clientX-r.left)*1080/r.width;
+ y=(e.clientY-r.top)*1920/r.height;
+ draw();
 };
 
-function drawCanvas(t) {
-    ctx.save();
-    ctx.imageSmoothingEnabled = true;
-    ctx.fillStyle = "#000"; 
-    ctx.fillRect(0,0,1080,1920);
+function draw(){
+ ctx.clearRect(0,0,1080,1920);
+ ctx.fillStyle="#000";ctx.fillRect(0,0,1080,1920);
+ if(bgImg.complete) {
+  let s=Math.min(1080/bgImg.width,1920/bgImg.height);
+  ctx.drawImage(bgImg,(1080-bgImg.width*s)/2,(1920-bgImg.height*s)/2,bgImg.width*s,bgImg.height*s);
+ }
+ ctx.fillStyle=color;
+ ctx.font=size+"px "+font;
+ ctx.shadowColor="rgba(0,0,0,.6)";
+ ctx.shadowBlur=15;
 
-    // Fade in effect
-    let globalFade = Math.min(1, t / 1.2);
-    ctx.globalAlpha = globalFade;
+ let p=Math.min(1,time/1.5);
+ let dy=y,sc=1;
+ if(anim==="slide")dy+=(1-p)*150;
+ if(anim==="pop")sc=0.7+p*0.3;
+ if(anim==="bounce")dy+=Math.sin(time*4)*-30;
 
-    // IMAGE FIT (Centered with no stretching)
-    if(bgImg.complete && bgImg.width) {
-        let ratio = Math.min(1080 / bgImg.width, 1920 / bgImg.height);
-        let w = bgImg.width * ratio, h = bgImg.height * ratio;
-        ctx.drawImage(bgImg, (1080-w)/2, (1920-h)/2, w, h);
-    }
-
-    // CREDIT OUTRO
-    if (t >= totalSecs - 2.5) {
-        let prog = Math.min(1, (t - (totalSecs - 2.5)) / 2.5);
-        ctx.fillStyle = "#050505"; ctx.globalAlpha = prog; ctx.fillRect(0,0,1080,1920);
-        ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillStyle = "#00f2ea";
-        ctx.font = `bold ${110 + prog*20}px Poppins`;
-        ctx.fillText("VoidUpLift", 540, 960);
-        ctx.restore(); return;
-    }
-
-    // TEXT LAYER
-    ctx.save();
-    ctx.fillStyle = tColor;
-    ctx.font = `${fSize}px "${currentFont}"`;
-    ctx.textAlign = "left"; ctx.textBaseline = "top";
-    ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 15;
-
-    let animProg = Math.min(1, t / 1.5);
-    let dx = textX, dy = textY, sc = 1;
-
-    // Animations logic
-    if (animationType === "slide") dy += (1 - animProg) * 150;
-    if (animationType === "pop") sc = 0.7 + (animProg * 0.3);
-    if (animationType === "bounce") dy += Math.abs(Math.sin(t * 4)) * -40;
-
-    ctx.globalAlpha = animProg * globalFade;
-    ctx.translate(dx, dy);
-    ctx.scale(sc, sc);
-
-    let displayStr = useTyping ? textStr.slice(0, Math.floor(t * typeSpeed)) : textStr;
-    
-    // Wrap Text logic
-    let words = displayStr.split(" "), line = "", yOffset = 0;
-    for (let w of words) {
-        let test = line + w + " ";
-        if (ctx.measureText(test).width > 900) { 
-            ctx.fillText(line, 0, yOffset); 
-            line = w + " "; 
-            yOffset += fSize * 1.2; 
-        } else { line = test; }
-    }
-    ctx.fillText(line, 0, yOffset);
-    ctx.restore();
-    ctx.restore();
+ ctx.save();
+ ctx.translate(x,dy);ctx.scale(sc,sc);
+ let txt=typing?textStr.slice(0,Math.floor(time*speed)):textStr;
+ ctx.fillText(txt,0,0);
+ ctx.restore();
 }
 
-playBtn.onclick = () => {
-    isPlaying = !isPlaying;
-    playBtn.textContent = isPlaying ? "pause_circle_filled" : "play_circle_filled";
-    if (userAudio) { userAudio.currentTime = currentTime; isPlaying ? userAudio.play() : userAudio.pause(); }
-    if (isPlaying) { lastFrameTime = performance.now(); requestAnimationFrame(playLoop); }
+playBtn.onclick=()=>{
+ playing=!playing;
+ playBtn.textContent=playing?"pause_circle_filled":"play_circle_filled";
+ if(playing){last=performance.now();requestAnimationFrame(loop);}
 };
 
-function playLoop(now) {
-    if (!isPlaying) return;
-    currentTime += (now - lastFrameTime) / 1000;
-    lastFrameTime = now;
-    if (currentTime >= totalSecs) { currentTime = 0; isPlaying = false; playBtn.textContent = "play_circle_filled"; if(userAudio) userAudio.pause(); }
-    timeline.value = currentTime;
-    updateFrame();
-    requestAnimationFrame(playLoop);
+function loop(now){
+ if(!playing)return;
+ time+=(now-last)/1000;last=now;
+ if(time>duration){time=0;playing=false;playBtn.textContent="play_circle_filled";}
+ timeline.value=time;draw();requestAnimationFrame(loop);
 }
 
-// STABLE EXPORT ENGINE
-document.getElementById('exportBtn').onclick = async () => {
-    isPlaying = false;
-    loadingOverlay.style.display = 'flex';
-    
-    const chunks = [];
-    const stream = canvas.captureStream(0); 
-    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 12000000 });
-
-    recorder.ondataavailable = e => chunks.push(e.data);
-    recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'VoidUpLift_Reel.webm';
-        a.click();
-        loadingOverlay.style.display = 'none';
-    };
-
-    recorder.start();
-    
-    const fps = 30;
-    const totalFrames = totalSecs * fps;
-    for(let i = 0; i <= totalFrames; i++) {
-        currentTime = i / fps;
-        updateFrame();
-        stream.getVideoTracks()[0].requestFrame(); 
-        progressText.innerText = `Rendering ${Math.round((i/totalFrames)*100)}%`;
-        await new Promise(r => setTimeout(r, 10)); 
-    }
-    recorder.stop();
+/* ======= STABLE EXPORT ENGINE ======= */
+exportBtn.onclick=()=>{
+ const fps=30;
+ loadingOverlay.style.display="flex";
+ const stream=canvas.captureStream(fps);
+ const rec=new MediaRecorder(stream,{mimeType:"video/webm;codecs=vp9",videoBitsPerSecond:12000000});
+ const chunks=[];
+ rec.ondataavailable=e=>chunks.push(e.data);
+ rec.onstop=()=>{
+  const blob=new Blob(chunks,{type:"video/webm"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="VoidUpLift_Reel.webm";
+  a.click();
+  loadingOverlay.style.display="none";
+ };
+ rec.start();
+ time=0;
+ const start=performance.now();
+ function render(now){
+  time=(now-start)/1000;
+  if(time>=duration){rec.stop();return;}
+  draw();
+  progressText.innerText=`Rendering ${Math.round(time/duration*100)}%`;
+  requestAnimationFrame(render);
+ }
+ requestAnimationFrame(render);
 };
 
-window.onload = () => { timeline.max = totalSecs; updateFrame(); };
+draw();
 </script>
 </body>
 </html>
