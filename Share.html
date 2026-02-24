@@ -7,95 +7,188 @@
 
 <style>
 :root{
-    --green:#1db954;
-    --bg:#121212;
-    --card:#181818;
-    --text:#ffffff;
-    --muted:#b3b3b3;
+    --green: #1db954;
+    --green-hover: #1ed760;
+    --bg: #121212;
+    --card: #181818;
+    --text: #ffffff;
+    --muted: #b3b3b3;
+    --track: #535353;
 }
 
 body{
-      -webkit-user-select: none; /* Safari */
-  -ms-user-select: none;     /* IE 10+ and Edge */
-  user-select: none;       
-    margin:0;
-    background:var(--bg);
-    color:var(--text);
-    font-family:system-ui,-apple-system,BlinkMacSystemFont;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none;     /* IE 10+ and Edge */
+    user-select: none;       
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
 }
 
 .app{
-    max-width:420px;
-    margin:auto;
-    padding:20px;
+    width: 100%;
+    max-width: 380px;
+    margin: auto;
+    padding: 32px 24px;
+    background: var(--card);
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    box-sizing: border-box;
 }
 
 .cover{
-    width:100%;
-    aspect-ratio:1/1;
-    border-radius:16px;
-    background:linear-gradient(135deg,#1db954,#0f9d58);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:96px;
-    font-weight:800;
-    letter-spacing:2px;
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #1db954, #0a6930);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 100px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    box-shadow: 0 16px 32px rgba(29, 185, 84, 0.3);
+    text-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
+}
+
+.cover:hover {
+    transform: scale(1.02);
 }
 
 .title{
-    margin-top:20px;
-    font-size:24px;
-    font-weight:700;
+    margin-top: 28px;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .artist{
-    color:var(--muted);
-    margin-top:4px;
-    font-size:15px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-size: 16px;
+    font-weight: 500;
 }
 
 .meta{
-    margin-top:10px;
-    color:var(--muted);
-    font-size:14px;
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 .actions{
-    display:flex;
-    align-items:center;
-    gap:20px;
-    margin-top:18px;
-    font-size:22px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 20px;
+    font-size: 24px;
 }
 
 .actions span{
-    cursor:pointer;
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    filter: grayscale(100%) opacity(0.7);
+}
+
+.actions span:hover {
+    transform: scale(1.15);
+    filter: grayscale(0%) opacity(1);
+}
+
+.actions span#like[style*="❤️"] {
+    filter: none; /* Keeps the red heart bright */
 }
 
 .progress{
-    width:100%;
-    margin-top:22px;
+    width: 100%;
+    margin-top: 28px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--track);
+    height: 6px;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+    transition: height 0.1s ease;
+}
+
+.progress:hover {
+    height: 8px;
+}
+
+.progress::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    transition: transform 0.1s;
+    opacity: 0; /* Hides thumb until hovered */
+}
+
+.progress:hover::-webkit-slider-thumb {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.progress::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text);
+    cursor: pointer;
+    border: none;
+    opacity: 0;
+}
+
+.progress:hover::-moz-range-thumb {
+    opacity: 1;
 }
 
 .play-wrap{
-    display:flex;
-    justify-content:center;
-    margin-top:26px;
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
 }
 
 .play-btn{
-    width:68px;
-    height:68px;
-    border-radius:50%;
-    background:var(--green);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:28px;
-    color:#000;
-    cursor:pointer;
-    box-shadow:0 8px 24px rgba(0,0,0,.4);
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: #000;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(29, 185, 84, 0.4);
+    transition: all 0.2s ease;
+    padding-left: 4px; /* visually centers the play icon */
+    box-sizing: border-box;
+}
+
+.play-btn:hover {
+    transform: scale(1.06);
+    background: var(--green-hover);
+}
+
+.play-btn:active {
+    transform: scale(0.96);
 }
 </style>
 </head>
@@ -191,9 +284,11 @@ playBtn.onclick = async ()=>{
     if(audio.paused){
         await audio.play();
         playBtn.textContent="⏸";
+        playBtn.style.paddingLeft = "0"; // Recenter the pause icon visually
     }else{
         audio.pause();
         playBtn.textContent="▶";
+        playBtn.style.paddingLeft = "4px"; // Recenter the play icon visually
     }
 };
 
@@ -201,16 +296,25 @@ playBtn.onclick = async ()=>{
 audio.ontimeupdate = ()=>{
     progress.max = audio.duration || 0;
     progress.value = audio.currentTime || 0;
+    
+    // --- NEW: Fills the progress bar dynamically with green as it plays ---
+    const percentage = (progress.value / progress.max) * 100 || 0;
+    progress.style.background = `linear-gradient(to right, var(--green) ${percentage}%, var(--track) ${percentage}%)`;
 };
 
 progress.oninput = ()=>{
     audio.currentTime = progress.value;
+    
+    // Update visual fill instantly while dragging
+    const percentage = (progress.value / progress.max) * 100 || 0;
+    progress.style.background = `linear-gradient(to right, var(--green) ${percentage}%, var(--track) ${percentage}%)`;
 };
 
 // LIKE
 likeBtn.onclick = ()=>{
     liked = !liked;
     likeBtn.textContent = liked ? "❤️" : "🤍";
+    likeBtn.style.filter = liked ? "none" : ""; // Keeps the red bright when liked
 };
 
 // SHARE
