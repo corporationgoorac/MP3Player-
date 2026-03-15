@@ -5,20 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="format-detection" content="telephone=no">
 <meta name="HandheldFriendly" content="true">
-<title>YT Music Style Player</title>
-<meta name="description" content="YouTube Music style MP3 player with modal navigation">
-<link rel="icon" href="data:," />
+<meta name="theme-color" id="themeColorMeta" content="#030303" />
+<title>Wavefy Player</title>
+<meta name="description" content="Wavefy - Professional MP3 player with modal navigation">
+<link rel="icon" href="icon.png" />
+
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet" />
+
 <style>
-/* --- YT Music Dark Theme Variables --- */
+/* --- Wavefy Dark Theme Variables --- */
 :root {
   --bg: #030303;
-  --surface: #212121;
-  --surface-hover: #3d3d3d;
+  --surface: #181818;
+  --surface-hover: #282828;
   --text-primary: #ffffff;
   --text-secondary: #aaaaaa;
   --accent: #ffffff;
-  --divider: rgba(255, 255, 255, 0.1);
-  --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --divider: rgba(255, 255, 255, 0.08);
+  --font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 /* --- Reset & Base --- */
@@ -28,8 +32,18 @@ html, body {
   font-family: var(--font-family); font-size: 15px; overflow: hidden;
   overscroll-behavior-y: none; /* Prevent pull-to-refresh on mobile */
 }
-button { font-family: inherit; cursor: pointer; border: none; background: transparent; color: var(--text-primary); outline: none; }
+button { 
+  font-family: inherit; cursor: pointer; border: none; background: transparent; 
+  color: var(--text-primary); outline: none; display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.2s, transform 0.2s;
+}
+button:active { opacity: 0.7; transform: scale(0.95); }
 input { font-family: inherit; outline: none; border: none; background: transparent; color: var(--text-primary); }
+
+/* Material Icon alignment fix */
+.material-symbols-rounded {
+  display: block;
+}
 
 /* --- App Container --- */
 #app {
@@ -39,126 +53,138 @@ input { font-family: inherit; outline: none; border: none; background: transpare
 /* --- Header --- */
 header {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 16px 20px; height: 64px; flex-shrink: 0;
+  padding: 16px 20px; height: 72px; flex-shrink: 0;
 }
-.brand { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px;}
-.brand span { color: #aaaaaa; font-weight: 400; font-size: 16px; }
-.header-actions button { font-size: 24px; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center;}
+.brand { 
+  font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px;
+}
+.brand-logo { 
+  width: 36px; height: 36px; border-radius: 10px; object-fit: contain; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.header-actions button { padding: 8px; border-radius: 50%; }
 
 /* --- Main Track List --- */
 main {
-  flex: 1; overflow-y: auto; padding-bottom: 80px; /* Space for mini player */
+  flex: 1; overflow-y: auto; padding-bottom: 90px; /* Space for mini player */
 }
 .list-item {
-  display: flex; align-items: center; padding: 12px 20px; gap: 16px; cursor: pointer; transition: background 0.2s;
+  display: flex; align-items: center; padding: 14px 20px; gap: 16px; cursor: pointer; transition: background 0.2s;
 }
 .list-item:active, .list-item:hover { background: var(--surface); }
-.list-item.active .song-title { color: var(--text-primary); }
+.list-item.active .song-title { color: var(--text-primary); font-weight: 600; }
 .list-item .thumb {
-  width: 48px; height: 48px; border-radius: 4px; overflow: hidden; flex-shrink: 0; background: var(--surface);
+  width: 52px; height: 52px; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: var(--surface);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 .list-item .thumb img { width: 100%; height: 100%; object-fit: cover; }
-.list-item .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.list-item .song-title { font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-item .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.list-item .song-title { font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px;}
 .list-item .song-artist { font-size: 14px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.list-item .more-btn { color: var(--text-secondary); padding: 8px; font-size: 18px; }
+.list-item .more-btn { color: var(--text-secondary); padding: 8px; margin-right: -8px;}
 
 /* --- Mini Player --- */
 #miniPlayer {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  height: 64px; background: #212121;
-  display: flex; align-items: center; padding: 0 16px; gap: 12px;
-  cursor: pointer; z-index: 10; border-top: 1px solid var(--divider);
-  transition: transform 0.3s ease;
+  position: absolute; bottom: 8px; left: 8px; right: 8px;
+  height: 68px; background: #212121; border-radius: 12px;
+  display: flex; align-items: center; padding: 0 16px; gap: 14px;
+  cursor: pointer; z-index: 10;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-#miniPlayer.hidden { transform: translateY(100%); }
-#miniPlayer .thumb { width: 40px; height: 40px; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+#miniPlayer.hidden { transform: translateY(150%); }
+#miniPlayer .thumb { width: 44px; height: 44px; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
 #miniPlayer .thumb img { width: 100%; height: 100%; object-fit: cover; }
-#miniPlayer .info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-#miniPlayer .song-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#miniPlayer .song-artist { font-size: 12px; color: var(--text-secondary); }
-#miniPlayer .controls { display: flex; gap: 4px; align-items: center; }
-#miniPlayer .controls button { padding: 12px; font-size: 20px; }
+#miniPlayer .info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+#miniPlayer .song-title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#miniPlayer .song-artist { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+#miniPlayer .controls { display: flex; gap: 8px; align-items: center; margin-right: -4px;}
+#miniPlayer .controls button { padding: 8px; }
 .mini-progress-bar {
-  position: absolute; bottom: 0; left: 0; height: 2px; background: rgba(255,255,255,0.2); width: 100%;
+  position: absolute; bottom: 0; left: 16px; right: 16px; height: 2px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;
 }
-.mini-progress-fill { height: 100%; background: var(--text-primary); width: 0%; }
+.mini-progress-fill { height: 100%; background: var(--text-primary); width: 0%; border-radius: 2px;}
 
 /* --- Modals (Full Screen Slide-Up) --- */
 .modal {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   background: var(--bg); z-index: 50;
-  transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   display: flex; flex-direction: column;
 }
 .modal.active { transform: translateY(0); }
 
 /* --- Search Modal --- */
+#searchModal { background: var(--bg); } 
 #searchModal .search-header {
   display: flex; align-items: center; padding: 12px 16px; gap: 16px; background: var(--surface);
+  border-bottom: 1px solid var(--divider);
 }
-#searchModal .back-btn { font-size: 24px; padding: 8px; }
+#searchModal .back-btn { padding: 8px; margin-left: -8px;}
 #searchModal input {
   flex: 1; font-size: 16px; /* 16px prevents iOS zoom */
-  background: transparent; padding: 8px 0;
+  background: transparent; padding: 10px 0; font-weight: 500;
 }
-#searchModal input::placeholder { color: var(--text-secondary); }
-#searchResults { flex: 1; overflow-y: auto; }
+#searchModal input::placeholder { color: var(--text-secondary); font-weight: 400;}
+#searchResults { flex: 1; overflow-y: auto; background: var(--bg); padding-top: 8px;}
 
 /* --- Now Playing Modal --- */
-#playerModal { background: linear-gradient(to bottom, #2a2a2a, #000000); }
+#playerModal { background: linear-gradient(145deg, #1f1f1f 0%, #000000 100%); }
 .pm-header {
   display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;
 }
-.pm-header button { font-size: 24px; padding: 8px; }
-.pm-header .title-badge { font-size: 12px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;}
+.pm-header button { padding: 8px; }
+.pm-header .title-badge { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px;}
 
 .pm-art {
-  flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; min-height: 0;
+  flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px 32px; min-height: 0;
 }
 .pm-art .cover-wrapper {
-  width: 100%; max-width: 400px; aspect-ratio: 1/1; border-radius: 8px; overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  width: 100%; max-width: 360px; aspect-ratio: 1/1; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
 }
 .pm-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-.pm-details { padding: 0 32px 10px 32px; }
-.pm-title { font-size: 24px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pm-artist { font-size: 16px; color: var(--text-secondary); }
+.pm-details { padding: 0 32px 16px 32px; }
+.pm-title { font-size: 26px; font-weight: 800; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.5px;}
+.pm-artist { font-size: 16px; font-weight: 500; color: var(--text-secondary); }
 
 .pm-timeline { padding: 10px 32px; }
 .pm-range-wrapper { position: relative; height: 24px; display: flex; align-items: center; cursor: pointer; }
-.pm-range-track { width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; position: relative; overflow: hidden;}
+.pm-range-track { width: 100%; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; position: relative; overflow: hidden;}
 .pm-range-fill { position: absolute; top: 0; left: 0; height: 100%; background: var(--text-primary); pointer-events: none;}
 /* Native Range Input Styling */
 input[type=range] {
   position: absolute; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer;
 }
-.pm-time-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-top: 4px;}
+.pm-time-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); font-weight: 600; margin-top: 8px;}
 
-.pm-controls { display: flex; justify-content: space-between; align-items: center; padding: 10px 32px 30px 32px; }
-.pm-controls button { font-size: 24px; color: var(--text-primary); transition: transform 0.1s; }
-.pm-controls button:active { transform: scale(0.9); }
+.pm-controls { display: flex; justify-content: space-between; align-items: center; padding: 10px 32px 40px 32px; }
+.pm-controls button { color: var(--text-primary); padding: 8px;}
+.pm-controls button .material-symbols-rounded { font-size: 36px; }
 .pm-controls .play-pause-btn {
-  width: 72px; height: 72px; background: var(--text-primary); color: #000;
-  border-radius: 50%; font-size: 28px; display: flex; align-items: center; justify-content: center;
+  width: 80px; height: 80px; background: var(--text-primary); color: #000;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(255,255,255,0.2);
 }
-.pm-controls .state-btn { color: var(--text-secondary); font-size: 20px;}
+.pm-controls .play-pause-btn .material-symbols-rounded { font-size: 44px; }
+.pm-controls .state-btn { color: var(--text-secondary); }
+.pm-controls .state-btn .material-symbols-rounded { font-size: 26px; }
 .pm-controls .state-btn.active { color: var(--text-primary); }
 
-.pm-actions { display: flex; justify-content: space-around; padding: 0 20px 40px 20px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 10px; padding-top: 20px;}
-.pm-actions button { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
-.pm-actions button .icon { font-size: 20px; }
+.pm-actions { display: flex; justify-content: space-around; padding: 0 20px 40px 20px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 10px; padding-top: 24px;}
+.pm-actions button { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-secondary); }
 </style>
 </head>
 <body>
 
 <div id="app">
   <header>
-    <div class="brand">▶ Music</div>
+    <div class="brand">
+      <img src="icon.png" alt="Wavefy Logo" class="brand-logo"> Wavefy
+    </div>
     <div class="header-actions">
-      <button id="openSearchBtn">🔍</button>
-      <button id="importBtn" title="Import Local">📁</button>
+      <button id="openSearchBtn"><span class="material-symbols-rounded">search</span></button>
     </div>
   </header>
 
@@ -171,8 +197,8 @@ input[type=range] {
       <div class="song-artist" id="miniArtist">Siva Manihandan</div>
     </div>
     <div class="controls">
-      <button id="miniPlayBtn">▶</button>
-      <button id="miniNextBtn">⏭</button>
+      <button id="miniPlayBtn"><span class="material-symbols-rounded">play_arrow</span></button>
+      <button id="miniNextBtn"><span class="material-symbols-rounded">skip_next</span></button>
     </div>
     <div class="mini-progress-bar"><div class="mini-progress-fill" id="miniProgressFill"></div></div>
   </div>
@@ -180,7 +206,7 @@ input[type=range] {
 
 <div id="searchModal" class="modal">
   <div class="search-header">
-    <button class="back-btn" id="closeSearchBtn">←</button>
+    <button class="back-btn" id="closeSearchBtn"><span class="material-symbols-rounded">arrow_back</span></button>
     <input type="text" id="searchInput" placeholder="Search songs, artists..." autocomplete="off">
   </div>
   <div id="searchResults"></div>
@@ -188,9 +214,10 @@ input[type=range] {
 
 <div id="playerModal" class="modal">
   <div class="pm-header">
-    <button id="closePlayerBtn">↓</button>
+    <button id="closePlayerBtn"><span class="material-symbols-rounded">keyboard_arrow_down</span></button>
     <div class="title-badge">Playing from library</div>
-    <button style="visibility:hidden">⋮</button> </div>
+    <button style="visibility:hidden"><span class="material-symbols-rounded">more_vert</span></button>
+  </div>
   
   <div class="pm-art">
     <div class="cover-wrapper"><img id="pmCoverImg" alt="Cover Art"></div>
@@ -213,16 +240,16 @@ input[type=range] {
   </div>
 
   <div class="pm-controls">
-    <button class="state-btn" id="pmShuffleBtn">🔀</button>
-    <button id="pmPrevBtn">⏮</button>
-    <button class="play-pause-btn" id="pmPlayBtn">▶</button>
-    <button id="pmNextBtn">⏭</button>
-    <button class="state-btn" id="pmRepeatBtn">🔁</button>
+    <button class="state-btn" id="pmShuffleBtn"><span class="material-symbols-rounded">shuffle</span></button>
+    <button id="pmPrevBtn"><span class="material-symbols-rounded">skip_previous</span></button>
+    <button class="play-pause-btn" id="pmPlayBtn"><span class="material-symbols-rounded">play_arrow</span></button>
+    <button id="pmNextBtn"><span class="material-symbols-rounded">skip_next</span></button>
+    <button class="state-btn" id="pmRepeatBtn"><span class="material-symbols-rounded">repeat</span></button>
   </div>
 
   <div class="pm-actions">
     <button id="pmShareBtn">
-      <div class="icon">🔗</div>
+      <span class="material-symbols-rounded">share</span>
       <span>Share</span>
     </button>
   </div>
@@ -249,6 +276,7 @@ let isSeeking = false;
 const player = document.getElementById('player');
 const mainPlaylist = document.getElementById('mainPlaylist');
 const searchResults = document.getElementById('searchResults');
+const themeColorMeta = document.getElementById('themeColorMeta');
 
 // Mini Player
 const miniPlayer = document.getElementById('miniPlayer');
@@ -281,6 +309,11 @@ function escapeHtml(s) { return String(s).replace(/[&<>"'`]/g, c=>({'&':'&amp;',
 function hashCode(s) { let h=0; for(let i=0;i<s.length;i++){ h=((h<<5)-h)+s.charCodeAt(i); h|=0; } return h; }
 function fmtTime(s) { if(isNaN(s)||!isFinite(s)) return '0:00'; const m=Math.floor(s/60); const ss=Math.floor(s%60).toString().padStart(2,'0'); return `${m}:${ss}`; }
 
+// --- THEME COLOR CONTROL ---
+function updateThemeColor(color) {
+  themeColorMeta.setAttribute('content', color);
+}
+
 // Generate Thumb/Cover
 function makeThumb(name) {
   const initials = (name||'').split(/[\s\-_]+/).map(t=>t[0]||'').slice(0,2).join('').toUpperCase() || 'S';
@@ -301,6 +334,9 @@ function makeCover(name) {
 function openModal(modalId) {
   document.getElementById(modalId).classList.add('active');
   history.pushState({ modal: modalId }, '', `#${modalId}`);
+  
+  if(modalId === 'searchModal') updateThemeColor('#181818');
+  if(modalId === 'playerModal') updateThemeColor('#1f1f1f');
 }
 function closeModal(modalId) {
   document.getElementById(modalId).classList.remove('active');
@@ -311,9 +347,15 @@ function closeModal(modalId) {
 window.addEventListener('popstate', (e) => {
   // Close all modals
   document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-  // If we stepped back into a state that has a modal, open it
+  
+  // If we stepped back into a state that has a modal, open it and set theme
   if (e.state && e.state.modal) {
     document.getElementById(e.state.modal).classList.add('active');
+    if(e.state.modal === 'searchModal') updateThemeColor('#181818');
+    if(e.state.modal === 'playerModal') updateThemeColor('#1f1f1f');
+  } else {
+    // Back to main screen
+    updateThemeColor('#030303');
   }
 });
 
@@ -344,7 +386,7 @@ function createRow(t, i) {
       <div class="song-title">${escapeHtml(t.name)}</div>
       <div class="song-artist">${escapeHtml(t.artist || DEFAULT_ARTIST)}</div>
     </div>
-    <div class="more-btn">⋮</div>
+    <div class="more-btn"><span class="material-symbols-rounded">more_vert</span></div>
   `;
   row.addEventListener('click', () => playIndex(i));
   return row;
@@ -424,9 +466,9 @@ function updateUI() {
 }
 function updatePlayButtons() {
   const isPaused = player.paused;
-  const icon = isPaused ? '▶' : '⏸';
-  miniPlayBtn.textContent = icon;
-  pmPlayBtn.textContent = icon;
+  const icon = isPaused ? 'play_arrow' : 'pause';
+  miniPlayBtn.innerHTML = `<span class="material-symbols-rounded">${icon}</span>`;
+  pmPlayBtn.innerHTML = `<span class="material-symbols-rounded">${icon}</span>`;
 }
 
 // Audio Events
@@ -486,32 +528,12 @@ document.getElementById('pmShareBtn').addEventListener('click', () => {
   const shareUrl = `${baseUrl}/share.html?song=${encodeURIComponent(currentTrack.name)}`;
   
   navigator.clipboard.writeText(shareUrl).then(() => {
-    const btnSpan = document.querySelector('#pmShareBtn span');
+    const btnSpan = document.querySelector('#pmShareBtn span:nth-child(2)');
     btnSpan.textContent = 'Copied!';
     setTimeout(() => btnSpan.textContent = 'Share', 2000);
   }).catch(() => {
     alert("Copy failed. Here is the link:\n" + shareUrl);
   });
-});
-
-// Import Local (Retained from original)
-document.getElementById('importBtn').addEventListener('click', () => {
-  const inp = document.createElement('input'); inp.type='file'; inp.multiple=true; inp.accept='.mp3';
-  inp.onchange = () => {
-    if(!inp.files) return;
-    const files = Array.from(inp.files).filter(f => AUDIO_RE.test(f.name));
-    if(!files.length) return;
-    tracks.forEach(t=> { if(t._blob) URL.revokeObjectURL(t.url); });
-    tracks = files.map(f => ({ 
-      name: f.name.replace(/\.[^/.]+$/,''), 
-      url: URL.createObjectURL(f), 
-      artist: DEFAULT_ARTIST, _blob:true, 
-      thumb: makeThumb(f.name.replace(/\.[^/.]+$/,'')) 
-    }));
-    renderMain();
-    if(tracks.length) playIndex(0);
-  };
-  inp.click();
 });
 
 // --- DATA FETCHING ---
@@ -535,7 +557,7 @@ async function loadFromGithub() {
     renderMain();
   } catch(e) {
     console.error("Failed to load from Github:", e);
-    mainPlaylist.innerHTML = '<div style="padding:20px; color:#aaa;">Failed to load tracks. Use the folder icon to import local mp3s.</div>';
+    mainPlaylist.innerHTML = '<div style="padding:20px; color:#aaa; text-align:center;">Failed to load tracks. Please check your connection or repo settings.</div>';
   }
 }
 
@@ -543,6 +565,7 @@ async function loadFromGithub() {
 window.addEventListener('load', () => {
   // Clear any existing history state on fresh load
   history.replaceState(null, '', window.location.pathname);
+  updateThemeColor('#030303');
   loadFromGithub();
 });
 </script>
