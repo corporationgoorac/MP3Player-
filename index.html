@@ -9,6 +9,7 @@
 <title>Wavefy Player</title>
 <meta name="description" content="Wavefy - Professional MP3 player with modal navigation">
 <link rel="icon" href="icon.png" />
+<link rel="manifest" href="manifest.json" />
 
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet" />
 
@@ -174,9 +175,38 @@ input[type=range] {
 
 .pm-actions { display: flex; justify-content: space-around; padding: 0 20px 40px 20px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 10px; padding-top: 24px;}
 .pm-actions button { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+
+/* --- Install Popup --- */
+#installPopup {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-150%);
+  background: var(--surface); color: var(--text-primary); padding: 16px;
+  border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 100;
+  display: flex; align-items: center; gap: 16px; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border: 1px solid var(--divider); width: 90%; max-width: 400px;
+}
+#installPopup.show { transform: translateX(-50%) translateY(0); }
+.install-info { flex: 1; }
+.install-title { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+.install-desc { font-size: 13px; color: var(--text-secondary); }
+.install-actions { display: flex; gap: 8px; align-items: center; }
+.install-btn { background: var(--text-primary); color: #000; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; }
+.close-install-btn { padding: 4px; color: var(--text-secondary); }
+.close-install-btn .material-symbols-rounded { font-size: 20px; }
 </style>
 </head>
 <body>
+
+<div id="installPopup">
+  <img src="icon.png" alt="Wavefy" style="width: 44px; height: 44px; border-radius: 10px; object-fit: contain; background: #000;">
+  <div class="install-info">
+    <div class="install-title">Install Wavefy</div>
+    <div class="install-desc">Add to home screen for offline use</div>
+  </div>
+  <div class="install-actions">
+    <button id="installAppBtn" class="install-btn">Install</button>
+    <button id="closeInstallBtn" class="close-install-btn"><span class="material-symbols-rounded">close</span></button>
+  </div>
+</div>
 
 <div id="app">
   <header>
@@ -412,15 +442,48 @@ function renderSearch(filter = '') {
 }
 searchInput.addEventListener('input', (e) => renderSearch(e.target.value));
 
-// --- PLAYBACK ---
-function playIndex(i) {
+// --- PLAYBACK WITH LOCAL AUDIO CACHING ---
+async function cacheAudio(url) {
+  if ('caches' in window) {
+    try {
+      const cache = await caches.open('wavefy-audio-cache');
+      const match = await cache.match(url);
+      if (!match) {
+        const response = await fetch(url);
+        if (response.ok) await cache.put(url, response);
+      }
+    } catch (e) { console.error('Cache error:', e); }
+  }
+}
+
+async function playIndex(i) {
   if (tracks.length === 0) return;
   if (i < 0) i = tracks.length - 1;
   if (i >= tracks.length) i = 0;
   
   current = i;
   const t = tracks[current];
-  player.src = t.url;
+  
+  let playUrl = t.url;
+  
+  // --- OFFLINE / LOCAL STORAGE CACHING LOGIC ---
+  if ('caches' in window) {
+    try {
+      const cache = await caches.open('wavefy-audio-cache');
+      const res = await cache.match(t.url);
+      if (res) {
+        // Play directly from local browser cache if available
+        const blob = await res.blob();
+        playUrl = URL.createObjectURL(blob);
+      } else {
+        // Cache it in the background for the next time
+        cacheAudio(t.url); 
+      }
+    } catch(e) {}
+  }
+  // ---------------------------------------------
+
+  player.src = playUrl;
   
   // Update Media Session for lockscreen controls
   if('mediaSession' in navigator) {
@@ -536,8 +599,19 @@ document.getElementById('pmShareBtn').addEventListener('click', () => {
   });
 });
 
-// --- DATA FETCHING ---
+// --- DATA FETCHING & SYNC WITH LOCAL STORAGE ---
 async function loadFromGithub() {
+  
+  // 1. INSTANT LOAD: Grab tracks from LocalStorage so the app opens instantly
+  try {
+    const cachedTracks = localStorage.getItem('wavefy_tracks');
+    if (cachedTracks) {
+      tracks = JSON.parse(cachedTracks);
+      renderMain();
+    }
+  } catch(e) {}
+
+  // 2. BACKGROUND SYNC: Check Github for new additions
   try {
     const api = `https://api.github.com/repos/${OWNER}/${REPO}/contents/?ref=${BRANCH}`;
     const res = await fetch(api, { headers: { 'Accept': 'application/vnd.github.v3+json' }});
@@ -547,25 +621,87 @@ async function loadFromGithub() {
     if(!Array.isArray(json)) return;
     
     const mp3items = json.filter(i => i.type === 'file' && AUDIO_RE.test(i.name));
-    tracks = mp3items.map(item => ({ 
+    const newTracks = mp3items.map(item => ({ 
       name: item.name.replace(/\.[^/.]+$/,''), 
       url: item.download_url, 
       artist: DEFAULT_ARTIST, 
       thumb: makeThumb(item.name) 
     }));
     
-    renderMain();
+    // 3. COMPARE & CACHE: Check for new songs and cache them locally
+    let hasChanges = false;
+    const oldTrackNames = tracks.map(t => t.name);
+    
+    for (const t of newTracks) {
+      if (!oldTrackNames.includes(t.name)) {
+        hasChanges = true;
+        cacheAudio(t.url); // Automatically download the new MP3 locally
+      }
+    }
+    
+    // Update LocalStorage and UI if the tracklist has changed
+    if (hasChanges || tracks.length !== newTracks.length || tracks.length === 0) {
+      tracks = newTracks;
+      localStorage.setItem('wavefy_tracks', JSON.stringify(tracks));
+      renderMain();
+    }
+    
   } catch(e) {
     console.error("Failed to load from Github:", e);
-    mainPlaylist.innerHTML = '<div style="padding:20px; color:#aaa; text-align:center;">Failed to load tracks. Please check your connection or repo settings.</div>';
+    if (tracks.length === 0) {
+      mainPlaylist.innerHTML = '<div style="padding:20px; color:#aaa; text-align:center;">Failed to load tracks. Please check your connection or repo settings.</div>';
+    }
   }
 }
+
+// --- PWA & INSTALL LOGIC ---
+let deferredPrompt;
+const installPopup = document.getElementById('installPopup');
+const installAppBtn = document.getElementById('installAppBtn');
+const closeInstallBtn = document.getElementById('closeInstallBtn');
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      console.log('ServiceWorker registered:', reg.scope);
+    }).catch(err => console.error('ServiceWorker registration failed:', err));
+  });
+}
+
+// Handle Install Prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show the install popup after a brief delay
+  setTimeout(() => {
+    installPopup.classList.add('show');
+  }, 2000);
+});
+
+installAppBtn.addEventListener('click', async () => {
+  installPopup.classList.remove('show');
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    deferredPrompt = null;
+  }
+});
+
+closeInstallBtn.addEventListener('click', () => {
+  installPopup.classList.remove('show');
+});
 
 // INIT
 window.addEventListener('load', () => {
   // Clear any existing history state on fresh load
   history.replaceState(null, '', window.location.pathname);
   updateThemeColor('#030303');
+  
+  // Store the complete HTML page in local storage as requested
+  localStorage.setItem('wavefy_app_html', document.documentElement.outerHTML);
+  
   loadFromGithub();
 });
 </script>
